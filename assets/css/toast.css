@@ -1,0 +1,39 @@
+/* Add this to your global CSS file */
+
+/* Make toast container responsive */
+
+@media (max-width: 767px) {
+  .p-toast {
+    max-width: 90vw !important; /* Limit width to 90% of viewport */
+    width: 100% !important; /* Allow it to be narrower than its max width */
+  }
+}
+
+/* Make toast messages responsive */
+.p-toast .p-toast-message {
+  max-width: 100%; /* Ensure message doesn't overflow container */
+  word-break: break-word; /* Allow long words to break */
+}
+
+/* Adjust padding on smaller screens */
+@media screen and (max-width: 576px) {
+  .p-toast {
+    padding: 0.5rem !important;
+    right: 0 !important; /* Ensure it stays aligned to the right */
+  }
+
+  .p-toast .p-toast-message {
+    margin-bottom: 0.5rem !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Make the toast message content more compact */
+  .p-toast .p-toast-message-content {
+    padding: 0.5rem !important;
+  }
+
+  /* Adjust text size for better readability */
+  .p-toast .p-toast-detail {
+    font-size: 0.875rem; /* 14px for better fit */
+  }
+}

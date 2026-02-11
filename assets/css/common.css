@@ -1,0 +1,8 @@
+.center {
+  @apply flex items-center justify-center;
+}
+
+/* Badge class */
+.badge_4531 {
+  @apply center items-center gap-1 text-primary rounded px-2.5 py-1 w-fit text-sm max-sm:text-xs;
+}
