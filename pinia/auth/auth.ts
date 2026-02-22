@@ -52,6 +52,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         start('signup')
         const response = await $axios.post('/auth/students/signup', payload)
+        this.setTokens(response.data?.data as Token)
         handleSuccess({
           message: 'Account created successfully',
         })

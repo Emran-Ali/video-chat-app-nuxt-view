@@ -16,8 +16,6 @@ const getUserInfo = (channel: Channel = props.channel) => {
   userInfo.value = {
     image: otherMember?.user?.image || undefined,
     name: otherMember?.user?.name,
-    userType: otherMember?.user?.userType,
-    // isOnline: true,
     isOnline: otherMember?.user?.online || false,
     id: otherMember?.user?.id,
   }
@@ -51,7 +49,7 @@ onMounted(async () => {
       >
         <img
           v-if="userInfo?.image"
-          :src="getImageVersions(userInfo?.image).thumb"
+          :src="userInfo?.image"
           alt="User"
           class="object-cover h-8 w-8 md:h-12 md:w-12 rounded-full"
         />

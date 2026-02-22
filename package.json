@@ -20,11 +20,15 @@
     "@pinia/nuxt": "^0.10.1",
     "@primeuix/themes": "^1.0.0",
     "@primevue/forms": "^4.3.1",
+    "@prisma/client": "^6.19.2",
+    "@stream-io/node-sdk": "^0.7.42",
     "@stream-io/video-client": "1.23.1",
     "@stripe/stripe-js": "^7.7.0",
     "@vueuse/nuxt": "^13.5.0",
     "axios": "^1.8.1",
+    "bcryptjs": "^3.0.3",
     "eslint": "^9.21.0",
+    "jsonwebtoken": "^9.0.3",
     "lucide-vue-next": "^0.476.0",
     "nuxt": "^3.15.4",
     "nuxt-build-cache": "^0.1.1",
@@ -41,8 +45,11 @@
   },
   "devDependencies": {
     "@primevue/nuxt-module": "^4.3.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "husky": "^9.1.7",
     "nuxt-build-cache": "^0.1.1",
-    "prettier": "3.5.2"
+    "prettier": "3.5.2",
+    "prisma": "^6.19.2"
   }
 }

@@ -94,7 +94,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      BACKEND_URL: process.env.BACKEND_URL || 'https://api.craft-music.dev/',
+      BACKEND_URL: process.env.BACKEND_URL || '/api/',
       streamApiKey:
         process.env.NUXT_PUBLIC_STREAM_API_KEY ||
         process.env.VITE_STREAM_API_KEY,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
 import type { Channel } from 'stream-chat'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   channel: Channel
@@ -89,7 +89,7 @@ defineExpose({ getChannelInfo })
       >
         <img
           v-if="channelInfo?.image"
-          :src="getImageVersions(channelInfo?.image).thumb"
+          :src="channelInfo?.image"
           alt="User"
           class="object-cover h-8 w-8 rounded-full"
         />

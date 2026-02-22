@@ -49,9 +49,6 @@ const loadUsers = async (searchTerm: string = '') => {
   try {
     const queryFilter: any = {
       banned: false,
-      id: {
-        $autocomplete: authUser.isTeacher ? 'student' : 'teacher',
-      },
     }
 
     // Build the filter based on user type and search term
@@ -87,7 +84,6 @@ const debouncedLoadUsers = debounce((searchTerm: string) => {
 
 const handleInput = () => {
   isOpen.value = true
-  // Trigger debounced search
   debouncedLoadUsers(searchQuery.value)
 }
 
@@ -96,7 +92,6 @@ const selectUser = (user: UserResponse) => {
   searchQuery.value = user.name || user.id
   isOpen.value = false
 
-  // Emit events
   emit('update:modelValue', user.id)
   emit('user-selected', user)
 }
@@ -104,7 +99,6 @@ const selectUser = (user: UserResponse) => {
 const handleClickOutside = (event: MouseEvent) => {
   if (selectRef.value && !selectRef.value.contains(event.target as Node)) {
     isOpen.value = false
-    // Reset search if no selection was made
     if (!selectedUserId.value) {
       searchQuery.value = ''
     }
@@ -116,7 +110,6 @@ onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   await loadUsers()
 
-  // Set initial display value if modelValue is provided
   if (props.modelValue) {
     const user = users.value.find((u) => u.id === props.modelValue)
     if (user) {
@@ -129,7 +122,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// Watch for external modelValue changes
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -137,7 +129,7 @@ watch(
     if (newValue) {
       const user = users.value.find((u) => u.id === newValue)
       if (user) {
-        searchQuery.value = user.name || user.id
+        searchQuery.value = user.name || user.id || user.email
       }
     } else {
       searchQuery.value = ''
@@ -203,7 +195,7 @@ watch(
               <!-- User Avatar if available -->
               <img
                 v-if="user.image"
-                :src="getImageVersions(user.image).thumb"
+                :src="user.image"
                 :alt="user.name || user.id"
                 class="w-8 h-8 rounded-full mr-3"
               />

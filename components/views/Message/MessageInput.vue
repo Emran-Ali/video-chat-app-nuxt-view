@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { Paperclip, X, File, Smile, Send, Mic } from 'lucide-vue-next'
+import { File, Paperclip, Send, Smile, X } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import Vue3EmojiPicker from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
 

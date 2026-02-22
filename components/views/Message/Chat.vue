@@ -10,9 +10,7 @@ import SharedContent from '~/components/views/Message/SharedContent.vue'
 
 const props = defineProps<{ client: StreamChat; userId: string }>()
 const route = useRoute()
-const { isTeacher } = useAuthStore()
 
-// State
 const channels = ref<Channel[]>([])
 const selectedChannel = ref<Channel | null>(null)
 const loadingChannels = ref(true)
@@ -124,19 +122,6 @@ const handleUserSelected = async (user: any) => {
   try {
     const { users } = await props.client.queryUsers({ id: user.id })
     const selectedUser = users[0]
-    let teacherId
-    let studentId
-    if (isTeacher) {
-      teacherId = props.userId.split('-')[1]
-      studentId = user.id.split('-')[1]
-    } else {
-      studentId = props.userId.split('-')[1]
-      teacherId = user.id.split('-')[1]
-    }
-    if (isTeacher && selectedUser?.userType === 'Teacher') {
-      error.value = 'Teacher can not message teacher'
-      return
-    }
 
     const filter = {
       type: 'messaging',
@@ -147,13 +132,12 @@ const handleUserSelected = async (user: any) => {
     let channel
 
     if (existingChannels.length === 0) {
-      console.log('Creating channel: ', `chat-${teacherId}-${studentId}`)
+      console.log('Creating channel: ', `chat-${props.userId}-${user.id}`)
       channel = props.client.channel(
         'messaging',
-        `chat-${teacherId}-${studentId}`,
+        `chat-${props.userId}-${user.id}`,
         {
           members: [props.userId, user.id],
-          name: user.name || user.id,
         }
       )
       await channel.create()
@@ -281,6 +265,8 @@ const handleTypingStart = (event: Event) => {
   if (!selectedChannel.value || event.cid !== selectedChannel.value.cid) return
 
   const user = event.user
+  if (!user) return
+
   if (user.id !== props.userId) {
     typingUsers.value = {
       ...typingUsers.value,
@@ -293,6 +279,8 @@ const handleTypingStop = (event: Event) => {
   if (!selectedChannel.value || event.cid !== selectedChannel.value.cid) return
 
   const user = event.user
+  if (!user) return
+
   if (user.id !== props.userId && typingUsers.value[user.id]) {
     const newTypingUsers = { ...typingUsers.value }
     delete newTypingUsers[user.id]

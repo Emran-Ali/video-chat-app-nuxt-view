@@ -119,7 +119,6 @@ const handleNewMessage = (event: any) => {
   if (event.cid !== props.channel.cid) return
   messages.value.push(event.message)
   nextTick(() => {
-    // If message has image(s), wait for the image(s) to finish loading
     const images = messagesContainer.value?.querySelectorAll('img')
     if (images && images.length > 0) {
       let loadedCount = 0
@@ -283,11 +282,9 @@ const escapeHtml = (unsafe: string) => {
     .replace(/'/g, '&#039;')
 }
 
-const linkify = (text?: string, html) => {
+const linkify = (text?: string) => {
   if (!text) return ''
   const escaped = escapeHtml(text)
-
-  const urlPattern = /((https?:\/\/)|(www\.))[\w\-\./?%&=+#@:;,$()~']*/gi
 
   return escaped.replace(urlPattern, (url) => {
     let href = url
@@ -310,14 +307,6 @@ const handleMediaPlay = (event: Event) => {
   })
 }
 
-const openImageInNewTab = (url?: string) => {
-  if (url) {
-    const link = document.createElement('a')
-    link.href = url
-    link.target = '_blank'
-    link.click()
-  }
-}
 const setupEventListeners = (channel: any) => {
   channel.on('message.new', handleNewMessage)
   channel.on('message.updated', handleMessageUpdated)
@@ -435,7 +424,7 @@ onUnmounted(() => {
           >
             <img
               v-if="message.user!.image"
-              :src="getImageVersions(message.user!.image).optimized"
+              :src="message.user!.image"
               :alt="message.user!.name || 'User'"
               class="object-cover h-8 w-8"
             />
@@ -483,7 +472,7 @@ onUnmounted(() => {
             >
               <!-- Message text -->
               <div v-if="message.text" class="whitespace-pre-wrap px-3 py-2">
-                <span v-html="linkify(message.text, message.html)" />
+                <span v-html="linkify(message.text)" />
               </div>
 
               <!-- Attachments -->
