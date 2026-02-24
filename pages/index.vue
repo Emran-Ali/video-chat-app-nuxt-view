@@ -19,7 +19,7 @@ const user = computed(() => authStore.getUser)
 
 console.log(user.value)
 
-const streamUserId = user.value?.streamId
+const streamUserId = computed(() => user.value?.streamId)
 
 // Create a single client instance using ref instead of computed
 const client = ref<StreamChat | null>(null)
@@ -40,12 +40,18 @@ onMounted(async () => {
     }
 
     if (!client.value) {
+      if (!apiKey) {
+        throw new Error('Stream API key is missing. Check your .env file.')
+      }
       client.value = new StreamChat(apiKey)
     }
 
+    console.log('streamUserId', streamUserId.value)
+    console.log('streamToken', streamToken)
+
     await client.value.connectUser(
       {
-        id: streamUserId,
+        id: streamUserId.value as string,
       },
       streamToken
     )

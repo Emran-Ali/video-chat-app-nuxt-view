@@ -52,7 +52,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       BACKEND_URL: process.env.BACKEND_URL || '/api/',
-      streamApiKey: process.env.NUXT_PUBLIC_STREAM_API_KEY,
+      streamApiKey:
+        process.env.NUXT_PUBLIC_STREAM_API_KEY || process.env.STREAM_API_KEY,
     },
   },
 
