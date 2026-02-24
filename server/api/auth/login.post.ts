@@ -2,63 +2,80 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { prisma } from '~/server/utils/prisma'
 import { StreamCallService } from '~/server/utils/stream'
+import { loginValidation } from '~/utils/validation/user-validation'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { email, password } = body
-
-  if (!email || !password) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: 'Email and password are required',
+  try {
+    const validation = await loginValidation.validate(body, {
+      abortEarly: false,
     })
-  }
+    const { email, password } = validation
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  })
-
-  if (!user) {
-    throw createError({
-      statusCode: 404,
-      statusMessage: 'User not found',
+    const user = await prisma.user.findUnique({
+      where: { email },
     })
-  }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!user) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'User not found',
+      })
+    }
 
-  if (!isPasswordValid) {
-    throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid credentials',
-    })
-  }
+    const isPasswordValid = await bcrypt.compare(password, user.password)
 
-  // Create or update user in Stream
-  await StreamCallService.createUser({
-    id: user.id,
-    name: user.name || user.email.split('@')[0],
-    role: 'user',
-    image: user.image || undefined,
-  })
+    if (!isPasswordValid) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Invalid credentials',
+      })
+    }
 
-  // Generate Stream token
-  const streamToken = StreamCallService.createUserToken(user.streamId)
+    // Create or update user in Stream
+    try {
+      await StreamCallService.createUser({
+        id: user.id,
+        name: user.name || user.email.split('@')[0],
+        role: 'user',
+        image: (user as any).image || (user as any).photoUrl || undefined,
+      })
+    } catch (streamError) {
+      console.error('Stream sync error:', streamError)
+    }
 
-  const token = jwt.sign(
-    { userId: user.id, email: user.email },
-    process.env.JWT_SECRET || 'fallback_secret',
-    { expiresIn: '7d' }
-  )
+    // Generate Stream token
+    const streamToken = StreamCallService.createUserToken(user.id)
 
-  const { password: _, ...userWithoutPassword } = user
-  return {
-    data: {
-      user: userWithoutPassword,
-      accessToken: token,
-      streamToken: streamToken,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    message: 'Login successful',
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '7d' }
+    )
+
+    const { password: _, ...userWithoutPassword } = user as any
+    const sanitizedUser = {
+      ...userWithoutPassword,
+      image: userWithoutPassword.image || userWithoutPassword.photoUrl,
+    }
+
+    return {
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: sanitizedUser,
+        accessToken: token,
+        streamToken: streamToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    }
+  } catch (error: any) {
+    if (error.name === 'ValidationError') {
+      throw createError({
+        statusCode: 400,
+        message: error.errors[0],
+      })
+    }
+    throw error
   }
 })

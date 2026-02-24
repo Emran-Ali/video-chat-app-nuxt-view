@@ -1,23 +1,13 @@
 <script setup lang="ts">
 import Toast from 'primevue/toast'
-
-import { useTheme } from '~/themes/useTheme'
-
-useTheme()
-
-const authStore = useAuthStore()
 </script>
 
 <template>
-  <div class="bg-white">
+  <div>
     <Toast />
-
-    <SharedNavigationNav />
-
-    <main class="pt-20">
+    <main>
       <slot />
     </main>
-
     <SharedFooter />
   </div>
 </template>

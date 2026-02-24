@@ -17,7 +17,9 @@ const apiKey = config.public.streamApiKey
 const streamToken = useCookie('_stream_token').value
 const user = computed(() => authStore.getUser)
 
-const streamUserId = user.value?.streamUser
+console.log(user.value)
+
+const streamUserId = user.value?.streamId
 
 // Create a single client instance using ref instead of computed
 const client = ref<StreamChat | null>(null)
@@ -33,7 +35,7 @@ onMounted(async () => {
       throw new Error('No stream token found')
     }
 
-    if (!user.value?.streamUser) {
+    if (!user.value?.streamId) {
       throw new Error('No stream user found')
     }
 
@@ -71,11 +73,11 @@ onUnmounted(() => {
 })
 
 watch(user, async (newUser, oldUser) => {
-  if (newUser?.streamUser !== oldUser?.streamUser) {
+  if (newUser?.streamId !== oldUser?.streamId) {
     if (client.value?.user) {
       await client.value.disconnectUser()
     }
-    if (newUser?.streamUser) {
+    if (newUser?.streamId) {
       isConnecting.value = true
     }
   }
@@ -83,39 +85,33 @@ watch(user, async (newUser, oldUser) => {
 </script>
 
 <template>
-  <BaseContainer class="">
-    <div class="flex gap-2">
-      <div class="w-full md:w-[calc(100%-185px)] py-8 md:px-3">
-        <div v-if="isConnecting" class="text-center w-full mx-auto">
-          <div class="spinner"></div>
-          Loading chat...
-        </div>
+  <div class="container mx-auto max-w-7xl">
+    <div class="w-full md:w-[calc(100%-185px)] py-8 md:px-3">
+      <div v-if="isConnecting" class="text-center w-full mx-auto">
+        <div class="spinner"></div>
+        Loading chat...
+      </div>
 
-        <div
-          v-else-if="error"
-          class="text-red-500 text-center bg-red-50 p-4 rounded-md"
+      <div
+        v-else-if="error"
+        class="text-red-500 text-center bg-red-50 p-4 rounded-md"
+      >
+        {{ error }}
+        <button
+          class="ml-2 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+          @click="$router.go(0)"
         >
-          {{ error }}
-          <button
-            class="ml-2 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
-            @click="$router.go(0)"
-          >
-            Refresh
-          </button>
-        </div>
+          Refresh
+        </button>
+      </div>
 
-        <Chat
-          v-else-if="client?.user"
-          :client="client"
-          :user-id="streamUserId"
-        />
+      <Chat v-else-if="client?.user" :client="client" :user-id="streamUserId" />
 
-        <div v-else class="text-center text-gray-500">
-          Unable to initialize chat
-        </div>
+      <div v-else class="text-center text-gray-500">
+        Unable to initialize chat
       </div>
     </div>
-  </BaseContainer>
+  </div>
 </template>
 
 <style scoped>

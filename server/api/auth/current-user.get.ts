@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { prisma } from '~/server/utils/prisma'
+import { StreamCallService } from '~/server/utils/stream'
 
 export default defineEventHandler(async (event) => {
   const authHeader = getHeader(event, 'Authorization')
@@ -23,6 +24,8 @@ export default defineEventHandler(async (event) => {
       where: { id: decoded.userId },
     })
 
+    let streamId = user?.streamId
+
     if (!user) {
       throw createError({
         statusCode: 404,
@@ -30,12 +33,34 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { password: _, ...userWithoutPassword } = user
-    return userWithoutPassword
+    if (!streamId) {
+      const streamUser = await StreamCallService.createUser({
+        id: user.id,
+        name: user.name,
+        role: 'user',
+        image: user.image,
+      })
+
+      const firstUser = Object.values(streamUser.users)[0]
+      streamId = firstUser?.id
+
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: { streamId },
+      })
+    }
+
+    const { password: _, ...userWithoutPassword } = user as any
+    const sanitizedUser = {
+      ...userWithoutPassword,
+      streamId,
+    }
+    return sanitizedUser
   } catch (error) {
+    console.error('error', error)
     throw createError({
-      statusCode: 401,
-      statusMessage: 'Invalid or expired token',
+      statusCode: 500,
+      statusMessage: error?.message || 'Something went wrong',
     })
   }
 })

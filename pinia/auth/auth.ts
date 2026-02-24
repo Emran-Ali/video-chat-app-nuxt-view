@@ -9,10 +9,8 @@ interface User {
   id: string
   name: string
   email: string
-  photoUrl: string
-  role?: 'STUDENT' | 'TEACHER' | 'ADMIN'
-  streamUser?: string
-  mailVerifyAt?: string | null
+  image: string
+  streamId: string
 }
 
 type AuthType = {
@@ -35,15 +33,15 @@ export const useAuthStore = defineStore('auth', {
   state: (): AuthType => initialValue,
   getters: {
     getUser: (state) => state.user,
-    isTeacher: (state) => state.user?.role === 'TEACHER',
-    streamUser: (state) => state.user?.streamUser,
+    streamUserId: (state) => state.user?.streamId,
   },
 
   actions: {
     async signUp(payload: {
       email: string
       password: string
-      fullName: string
+      name: string
+      image?: string
       remember?: number
     }) {
       const { start, end, handleErrors, handleSuccess } = useGlobalStore()
@@ -51,7 +49,7 @@ export const useAuthStore = defineStore('auth', {
       const { $axios } = useNuxtApp()
       try {
         start('signup')
-        const response = await $axios.post('/auth/students/signup', payload)
+        const response = await $axios.post('/auth/signup', payload)
         this.setTokens(response.data?.data as Token)
         handleSuccess({
           message: 'Account created successfully',
@@ -83,21 +81,7 @@ export const useAuthStore = defineStore('auth', {
           message: 'Logged in successfully',
         })
 
-        if (this.user?.role === 'STUDENT') {
-          const query = router.currentRoute.value.query
-
-          if (query.redirect) {
-            await router.push(query.redirect as string)
-          } else {
-            await router.push(
-              isNew == 'true'
-                ? `/student/account?isNew=${isNew}`
-                : '/student/account'
-            )
-          }
-        } else {
-          await router.push('/teacher/account')
-        }
+        await router.push('/')
       } catch (error) {
         handleErrors(error)
         console.error('Login error:', error)
@@ -127,15 +111,8 @@ export const useAuthStore = defineStore('auth', {
         })
         this.setTokens(response.data?.data as Token, remember)
 
-        const userinfo = await this.fetchUser()
-
-        if (!userinfo?.mailVerifyAt) {
-          await router.push({
-            path: '/verify-footprint',
-            query: { email: userinfo?.email },
-          })
-          return
-        }
+        await this.fetchUser()
+        this.isAuthenticated = true
 
         handleSuccess({
           message: 'Logged in successfully',
@@ -172,6 +149,9 @@ export const useAuthStore = defineStore('auth', {
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         })
         await this.fetchUser()
+        if (this.user) {
+          this.isAuthenticated = true
+        }
       }
 
       return this.isAuthenticated
@@ -202,10 +182,12 @@ export const useAuthStore = defineStore('auth', {
         setStreamToken(streamToken, cookieOptions)
 
         $updateToken(accessToken)
+        this.isAuthenticated = true
       } else {
         this.token = null
         useCookie('_token').value = null
         $updateToken('')
+        this.isAuthenticated = false
       }
     },
 
@@ -223,6 +205,7 @@ export const useAuthStore = defineStore('auth', {
         const response = await $axios.get('/auth/current-user')
         this.user = response?.data
         this.isUserDataFetched = true
+        this.isAuthenticated = !!this.user
 
         return response?.data
       } catch (error) {

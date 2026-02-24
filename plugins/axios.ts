@@ -7,7 +7,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   let token = useCookie('_token').value
 
   const instance = axios.create({
-    baseURL: config.public?.BACKEND_URL || 'https://api.craft-music.dev/', // Use your backend API URL from runtime config
+    baseURL: config.public?.BACKEND_URL || '/api/',
   })
 
   // Request interceptor
@@ -72,8 +72,8 @@ export default defineNuxtPlugin((nuxtApp) => {
   return {
     provide: {
       axios: instance,
-      updateToken: updateToken,
-      getToken: getToken,
+      updateToken,
+      getToken,
     },
   }
 })
