@@ -2,13 +2,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const normalizedPath = to.path.toLowerCase()
 
-  // Define auth-less routes (public routes)
   const publicRoutes = ['/login', '/sign-up', '/auth/callback', '/404']
   const isPublicRoute = publicRoutes.some((route) =>
     normalizedPath.startsWith(route)
   )
-
-  // Define protected routes that require authentication
   const protectedRoutes = ['/message', '/call', '/']
   const isProtectedRoute = protectedRoutes.some(
     (route) =>
@@ -18,6 +15,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   try {
     // Check authentication status if not already fetched
     if (!authStore.isUserDataFetched) {
+      console.log('Checking authentication status...')
       await authStore.checkAuth()
     }
 
@@ -26,7 +24,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       if (normalizedPath === '/login' || normalizedPath === '/sign-up') {
         return navigateTo('/')
       }
-      // Allow callback and 404 even for authenticated users
       return
     }
 
@@ -39,7 +36,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   } catch (error) {
     console.error('Auth middleware error:', error)
-    // On error, redirect to login for protected routes
     if (isProtectedRoute) {
       return navigateTo('/login')
     }

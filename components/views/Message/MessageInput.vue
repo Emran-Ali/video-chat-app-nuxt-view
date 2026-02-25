@@ -383,12 +383,12 @@ defineExpose({
 <template>
   <div
     ref="containerRef"
-    class="w-full rounded-xl border overflow-hidden relative mt-3"
-    :class="{ 'bg-blue-50 border-blue-300': isDragging }"
+    class="w-full rounded-xl border border-white/5 overflow-hidden relative mt-2 bg-[#1a2f42]"
+    :class="{ 'bg-teal-900/30 border-teal-500/30': isDragging }"
   >
     <div
       v-if="fileError"
-      class="p-2 bg-red-50 border-b border-red-200"
+      class="p-2 bg-red-900/30 border-b border-red-500/20"
       role="alert"
     >
       <div class="flex items-center">
@@ -403,12 +403,15 @@ defineExpose({
             clip-rule="evenodd"
           />
         </svg>
-        <span class="text-sm text-red-700">{{ fileError }}</span>
+        <span class="text-sm text-red-400">{{ fileError }}</span>
       </div>
     </div>
 
     <!-- File previews -->
-    <div v-if="hasFiles" class="p-2 bg-gray-50 border-b flex flex-wrap gap-2">
+    <div
+      v-if="hasFiles"
+      class="p-2 bg-white/5 border-b border-white/5 flex flex-wrap gap-2"
+    >
       <div
         v-for="file in filePreviewList"
         :key="file.id"
@@ -462,24 +465,24 @@ defineExpose({
     </div>
 
     <!-- Input section -->
-    <div class="flex items-end p-1 bg-white">
+    <div class="flex items-end p-1 bg-[#1a2f42]">
       <!-- Emoji picker button -->
       <button
-        class="p-2 text-gray-500 hover:text-gray-700 rounded-full focus:outline-none transition-colors"
+        class="p-2 text-white/40 hover:text-teal-400 rounded-full focus:outline-none transition-colors"
         :disabled="isUploading"
         @click="isEmojiPickerOpen = !isEmojiPickerOpen"
       >
-        <Smile :size="24" />
+        <Smile :size="22" />
       </button>
 
       <!-- File attachment button -->
       <button
-        class="p-2 text-gray-500 hover:text-gray-700 rounded-full focus:outline-none transition-colors"
+        class="p-2 text-white/40 hover:text-teal-400 rounded-full focus:outline-none transition-colors"
         :disabled="isUploading"
         :title="`Attach files (${filePreviewList.length}/${maxFiles})`"
         @click="openFileDialog"
       >
-        <Paperclip :size="24" />
+        <Paperclip :size="22" />
       </button>
 
       <!-- Hidden file input element -->
@@ -492,7 +495,7 @@ defineExpose({
         @change="handleFileSelect"
       />
 
-      <!-- Message input field container -->
+      <!-- Message textarea -->
       <div class="flex-1 mx-2 relative">
         <textarea
           ref="textInput"
@@ -500,7 +503,7 @@ defineExpose({
           :placeholder="placeholder"
           :disabled="isUploading"
           rows="1"
-          class="w-full resize-none border-0 focus:ring-0 outline-none py-2 px-1 max-h-32"
+          class="w-full resize-none border-0 focus:ring-0 outline-none py-2 px-1 max-h-32 bg-transparent text-white/80 placeholder:text-white/25"
           :style="{ height: textareaHeight }"
           @keydown="handleKeyDown"
           @input="handleInput"
@@ -515,9 +518,9 @@ defineExpose({
         </div>
       </div>
 
-      <!-- Send/mic button -->
+      <!-- Send button -->
       <button
-        class="p-2 text-blue-500 hover:text-blue-700 rounded-full focus:outline-none transition-all duration-200 transform hover:scale-105"
+        class="p-2 text-teal-400 hover:text-teal-300 rounded-full focus:outline-none transition-all duration-200 transform hover:scale-110 disabled:opacity-30"
         :disabled="isUploading || !canSend"
         title="Send message"
         @click="sendMessage"

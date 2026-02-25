@@ -152,52 +152,56 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    class="p-2 rounded-xl border border-gray-300 bg-white flex flex-col h-[80vh]"
-  >
+  <div class="border-l border-white/5 bg-[#0d1b2a] flex flex-col h-full">
     <!-- Fixed Header -->
     <div
-      class="p-2 flex justify-between items-center border-b sticky top-0 bg-white z-10"
+      class="px-4 py-3 flex justify-between items-center border-b border-white/5 bg-[#132336] flex-shrink-0"
     >
-      <h3 class="font-semibold text-gray-800">Shared Content</h3>
+      <h3 class="font-bold text-white/80 text-sm tracking-wide">
+        Shared Content
+      </h3>
       <button
-        class="p-1 hover:bg-gray-100 text-sm rounded transition-colors md:hidden"
+        class="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white/80 transition-colors"
+        title="Close"
         @click="handleToggleSidebar"
       >
-        <i class="pi pi-times" />
+        <i class="pi pi-times text-xs" />
       </button>
     </div>
 
     <div
       v-if="loading"
-      class="flex-1 flex items-center justify-center text-gray-500"
+      class="flex-1 flex items-center justify-center text-white/20"
     >
-      <div class="text-center">
+      <div class="text-center flex flex-col items-center gap-2">
         <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"
+          class="w-6 h-6 border-2 border-teal-400 border-t-transparent rounded-full animate-spin"
         />
-        <p>Loading shared content...</p>
+        <p class="text-sm text-white/30">Loading shared content...</p>
       </div>
     </div>
 
     <!-- Empty State -->
     <div
       v-else-if="!hasContent"
-      class="flex-1 flex items-center justify-center text-gray-500 p-3"
+      class="flex-1 flex flex-col items-center justify-center text-white/20 gap-2 p-3"
     >
-      No shared content in this channel yet
+      <i class="pi pi-image text-3xl" />
+      <span class="text-sm">No shared content yet</span>
     </div>
 
-    <div v-else class="flex-1 overflow-y-auto p-2 no-scrollbar">
+    <div v-else class="flex-1 overflow-y-auto p-3 no-scrollbar">
       <div class="space-y-6">
         <!-- Files Section -->
         <div v-if="sharedFile.length > 0" class="space-y-2">
-          <h3 class="text-sm font-semibold">Files</h3>
+          <h3 class="text-xs font-bold text-teal-400 uppercase tracking-widest">
+            Files
+          </h3>
           <div class="space-y-2">
             <div
               v-for="file in sharedFile"
               :key="file.id"
-              class="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              class="flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border border-white/5"
             >
               <svg
                 class="w-5 h-5 text-gray-500"
@@ -213,7 +217,7 @@ onUnmounted(() => {
                 />
               </svg>
               <div
-                class="flex-1 text-sm text-blue-600 hover:text-blue-800 truncate flex items-center gap-2"
+                class="flex-1 text-sm text-white/70 hover:text-white/90 truncate flex items-center gap-2"
               >
                 {{ file.name }}
               </div>
@@ -222,7 +226,7 @@ onUnmounted(() => {
                 :href="file.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-sm text-blue-600 hover:text-blue-800"
+                class="text-sm text-white/70 hover:text-white/90"
               >
                 <svg
                   class="w-5 h-5 text-gray-400 hover:text-gray-600"
@@ -244,18 +248,20 @@ onUnmounted(() => {
 
         <!-- Links Section -->
         <div v-if="sharedLink.length > 0" class="space-y-2">
-          <h3 class="text-sm font-semibold">Links</h3>
+          <h3 class="text-xs font-bold text-teal-400 uppercase tracking-widest">
+            Links
+          </h3>
           <div class="space-y-2">
             <div
               v-for="link in sharedLink"
               :key="link.url"
-              class="bg-gray-50 p-2 rounded-lg hover:bg-gray-100 transition-colors truncate"
+              class="bg-white/5 p-2 rounded-lg hover:bg-white/10 transition-colors truncate border border-white/5"
             >
               <a
                 :href="link.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-blue-600 hover:text-blue-800 text-sm"
+                class="text-teal-400 hover:text-teal-200 text-sm"
               >
                 {{ link.url }}
               </a>
@@ -265,7 +271,9 @@ onUnmounted(() => {
 
         <!-- Images Section -->
         <div v-if="sharedImage.length > 0" class="space-y-2">
-          <h3 class="text-sm font-semibold">Media</h3>
+          <h3 class="text-xs font-bold text-teal-400 uppercase tracking-widest">
+            Media
+          </h3>
           <div class="grid grid-cols-3 gap-2">
             <div
               v-for="media in sharedImage"

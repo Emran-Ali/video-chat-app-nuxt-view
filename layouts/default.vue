@@ -3,9 +3,9 @@ import Toast from 'primevue/toast'
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <Toast />
-    <main>
+    <main class="h-full">
       <slot />
     </main>
     <SharedFooter />

@@ -38,39 +38,72 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-row justify-between gap-2 items-center md:px-2">
-    <div class="flex flex-row p-2 items-center">
-      <i
-        class="pi pi-arrow-left block md:!hidden mr-1 cursor-pointer text-gray-600"
+  <div class="flex flex-row justify-between items-center px-4 py-2.5 gap-2">
+    <!-- Left: back + avatar + name -->
+    <div class="flex flex-row items-center gap-3">
+      <!-- Back arrow (mobile only) -->
+      <button
+        class="md:hidden p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
         @click="handleBack"
-      />
+      >
+        <i class="pi pi-arrow-left text-sm" />
+      </button>
+
+      <!-- Avatar -->
       <div
-        class="relative flex-shrink-0 rounded-full h-12 w-12 bg-gray-300 flex items-center justify-center"
+        class="relative flex-shrink-0 rounded-full h-10 w-10 bg-gradient-to-br from-teal-400 to-cyan-600 flex items-center justify-center shadow-lg"
       >
         <img
           v-if="userInfo?.image"
           :src="userInfo?.image"
           alt="User"
-          class="object-cover h-8 w-8 md:h-12 md:w-12 rounded-full"
+          class="object-cover h-10 w-10 rounded-full"
         />
-        <span v-else class="font-semibold text-sm text-white">U</span>
+        <span v-else class="font-bold text-sm text-white uppercase">
+          {{ (userInfo?.name || userInfo?.id || 'U').charAt(0) }}
+        </span>
+        <!-- Online indicator -->
         <span
           v-if="userInfo?.isOnline"
-          class="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-green-500 border-2 border-white"
+          class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-[#132336]"
         />
       </div>
 
-      <div class="flex flex-col text-gray-800 px-2">
-        <h2 class="text-lg md:text-xl font-bold">
+      <!-- Name & status -->
+      <div class="flex flex-col">
+        <h2 class="text-sm font-bold text-white leading-tight">
           {{ userInfo?.name || userInfo?.id || 'Unnamed Channel' }}
         </h2>
-        <span class="text-sm text-[#585D69]">{{ userInfo?.userType }}</span>
+        <span
+          class="text-xs font-medium"
+          :class="userInfo?.isOnline ? 'text-teal-400' : 'text-white/30'"
+        >
+          {{ userInfo?.isOnline ? '● Online' : '○ Offline' }}
+        </span>
       </div>
     </div>
-    <!-- Info button for mobile - toggles sidebar -->
-    <i
-      class="pi pi-info-circle md:!hidden cursor-pointer rounded-full p-2 bg-gray-100 text-sm mr-2"
-      @click="handleToggleSidebar"
-    />
+
+    <!-- Right: action icons -->
+    <div class="flex flex-row items-center gap-1">
+      <button
+        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        title="Video call"
+      >
+        <i class="pi pi-video text-sm" />
+      </button>
+      <button
+        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        title="Voice call"
+      >
+        <i class="pi pi-phone text-sm" />
+      </button>
+      <button
+        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        title="Shared content"
+        @click="handleToggleSidebar"
+      >
+        <i class="pi pi-info-circle text-sm" />
+      </button>
+    </div>
   </div>
 </template>

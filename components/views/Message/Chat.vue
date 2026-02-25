@@ -10,6 +10,7 @@ import SharedContent from '~/components/views/Message/SharedContent.vue'
 
 const props = defineProps<{ client: StreamChat; userId: string }>()
 const route = useRoute()
+const authStore = useAuthStore()
 
 const channels = ref<Channel[]>([])
 const selectedChannel = ref<Channel | null>(null)
@@ -22,27 +23,28 @@ const unreadChannels = ref<boolean>(false)
 const channelRefs = ref<Record<string, any>>({})
 
 const isMobile = ref(false)
+// On mobile, show channel list by default; show chat when a channel is selected
 const showChatOnMobile = ref(false)
-const showChatListMobile = ref(false)
-const showSidebarOnMobile = ref(false)
+// Sidebar (SharedContent) - always hidden by default, shown as overlay
+const showSidebar = ref(false)
 
 const checkMobileView = () => {
-  isMobile.value = window.innerWidth < 768 // md breakpoint
+  isMobile.value = window.innerWidth < 768
 }
 
 const toggleChatView = (show = true) => {
   showChatOnMobile.value = show
-  showChatListMobile.value = !show
-  showSidebarOnMobile.value = false
+  if (show) showSidebar.value = false
 }
 
 const toggleSidebar = (show = true) => {
-  showSidebarOnMobile.value = show
-  showChatOnMobile.value = !show
-  showChatListMobile.value = false
+  showSidebar.value = show
 }
 
-console.log('showChatListMobile : ', showChatListMobile.value)
+const closeSidebar = () => {
+  showSidebar.value = false
+}
+
 const typingText = computed(() => {
   const userIds = Object.keys(typingUsers.value).filter(
     (id) => id !== props.userId
@@ -61,7 +63,6 @@ const loadChannels = async () => {
   try {
     loadingChannels.value = true
     error.value = null
-    console.log('props.userId : ', props.userId)
 
     const filter = {
       type: 'messaging',
@@ -93,7 +94,7 @@ const loadChannels = async () => {
 
 const selectChannel = async (channel: Channel) => {
   if (selectedChannel.value?.cid === channel.cid) {
-    toggleChatView(true)
+    if (isMobile.value) toggleChatView(true)
     return
   }
 
@@ -120,8 +121,7 @@ const selectChannel = async (channel: Channel) => {
 
 const handleUserSelected = async (user: any) => {
   try {
-    const { users } = await props.client.queryUsers({ id: user.id })
-    const selectedUser = users[0]
+    await props.client.queryUsers({ id: user.id })
 
     const filter = {
       type: 'messaging',
@@ -132,7 +132,6 @@ const handleUserSelected = async (user: any) => {
     let channel
 
     if (existingChannels.length === 0) {
-      console.log('Creating channel: ', `chat-${props.userId}-${user.id}`)
       channel = props.client.channel(
         'messaging',
         `chat-${props.userId}-${user.id}`,
@@ -178,13 +177,8 @@ const handleSendMessage = async (payload: { text: string; files: File[] }) => {
         }
 
         try {
-          console.log(
-            `Uploading file ${uploadedFiles + 1} of ${totalFiles}: ${file.name}`
-          )
-
           let fileResponse
 
-          // Upload file based on type
           if (type === 'image') {
             fileResponse = await selectedChannel.value.sendImage(file)
           } else {
@@ -201,9 +195,6 @@ const handleSendMessage = async (payload: { text: string; files: File[] }) => {
           })
 
           uploadedFiles++
-          console.log(
-            `Successfully uploaded: ${file.name} (${uploadedFiles}/${totalFiles})`
-          )
         } catch (fileError) {
           console.error(`Error uploading file ${file.name}:`, fileError)
           continue
@@ -221,7 +212,6 @@ const handleSendMessage = async (payload: { text: string; files: File[] }) => {
     }
 
     await selectedChannel.value.sendMessage(messageData)
-    console.log('Message sent successfully with attachments')
   } catch (err) {
     console.error('Error sending message:', err)
     error.value = 'Failed to send message'
@@ -289,8 +279,6 @@ const handleTypingStop = (event: Event) => {
 }
 
 const handleNewMessage = (event: any) => {
-  console.log('New message received:', event.message)
-
   if (
     selectedChannel.value?.cid !== event.cid ||
     !channels.value.some((channel) => channel.cid === event.cid)
@@ -304,7 +292,7 @@ const handleNewMessage = (event: any) => {
   }
 }
 
-const handleNewMessageFromUnwatchedChannel = (event: any) => {
+const handleNewMessageFromUnwatchedChannel = () => {
   loadChannels()
 }
 
@@ -323,6 +311,15 @@ const handleQueryUsers = async () => {
   }
 }
 
+const handleLogout = async () => {
+  try {
+    await props.client.disconnectUser()
+  } catch (err) {
+    console.error('Stream disconnect error:', err)
+  }
+  await authStore.logout()
+}
+
 watch(
   () => unreadChannels.value,
   () => {
@@ -331,7 +328,6 @@ watch(
 )
 
 onMounted(async () => {
-  console.log('Chat component mounted, initializing...')
   props.client.on('message.new', handleNewMessage)
   props.client.on('typing.start', handleTypingStart)
   props.client.on('typing.stop', handleTypingStop)
@@ -346,7 +342,6 @@ onMounted(async () => {
 
   await loadChannels()
   await handleQueryUsers()
-  console.log('Chat component initialized successfully')
 })
 
 onUnmounted(() => {
@@ -370,88 +365,104 @@ const dismissError = () => {
 </script>
 
 <template>
-  <div
-    class="grid grid-cols-1 md:grid-cols-12 gap-1 sm:gap-4 min-h-[80vh] text-xs sm:text-sm p-0"
-  >
+  <div class="flex h-full w-full relative overflow-hidden bg-[#0d1b2a]">
     <!-- Error notification -->
-    <div v-if="error" class="col-span-full max-h-8">
+    <div v-if="error" class="absolute top-2 left-0 right-0 z-50 px-4">
       <div
-        class="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded flex justify-between items-center"
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg flex justify-between items-center shadow"
       >
         <span class="text-xs sm:text-sm">{{ error }}</span>
-        <button class="text-red-700 hover:text-red-900" @click="dismissError">
-          <svg
-            class="w-3 sm:w-4 h-3 sm:h-4"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clip-rule="evenodd"
-            />
-          </svg>
+        <button
+          class="text-red-700 hover:text-red-900 ml-4"
+          @click="dismissError"
+        >
+          <i class="pi pi-times text-xs" />
         </button>
       </div>
     </div>
 
-    <!-- Channels List  -->
+    <!-- ═══════════════════════════════════════════════
+         CHANNEL LIST PANEL
+         - Desktop: always visible, fixed width
+         - Mobile: full screen, hidden when chat is open
+    ═══════════════════════════════════════════════ -->
     <div
-      v-show="showChatListMobile || !isMobile"
-      class="rounded-xl border border-gray-300 bg-white flex-col h-[80vh] p-2 col-span-12 md:col-span-3 flex"
+      class="channel-list-panel flex flex-col bg-[#0d1b2a] border-r border-white/5 flex-shrink-0 transition-all duration-300"
+      :class="
+        isMobile
+          ? showChatOnMobile
+            ? 'w-0 overflow-hidden'
+            : 'w-full'
+          : 'w-80'
+      "
     >
-      <!-- Fixed Header Section -->
-      <div v-show="showChatListMobile || !isMobile" class="p-2 flex-shrink-0">
-        <h2 class="text-base sm:text-lg font-bold text-gray-800">Chats</h2>
+      <!-- Header -->
+      <div class="px-4 pt-5 pb-3 flex-shrink-0">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-bold text-white tracking-tight">💬 Chats</h2>
+        </div>
 
         <SearchUser
           v-model="selectedUserId"
           :client="props.client"
-          class="mt-2"
           placeholder="Search user..."
           @user-selected="handleUserSelected"
         />
       </div>
 
-      <div class="flex bg-[#F5F9FF] p-1 m-2 rounded-lg text-xs sm:text-sm">
+      <!-- All / Unread tabs -->
+      <div
+        class="flex bg-white/5 p-1 mx-3 rounded-xl text-xs font-medium flex-shrink-0"
+      >
         <div
-          class="flex-1 px-2 sm:px-4 py-1 sm:py-2 text-center cursor-pointer transition-all duration-200"
+          class="flex-1 px-3 py-1.5 text-center cursor-pointer rounded-lg transition-all duration-200"
           :class="
             !unreadChannels
-              ? 'text-gray-900 bg-white rounded-lg shadow-sm'
-              : 'text-gray-500'
+              ? 'bg-teal-500 text-white shadow-sm font-semibold'
+              : 'text-white/50 hover:text-white/80'
           "
           @click="unreadChannels = false"
         >
           All
         </div>
         <div
-          class="flex-1 px-2 sm:px-4 py-1 sm:py-2 text-center cursor-pointer transition-all duration-200"
+          class="flex-1 px-3 py-1.5 text-center cursor-pointer rounded-lg transition-all duration-200"
           :class="
             unreadChannels
-              ? 'text-gray-900 bg-white rounded-lg shadow-sm'
-              : 'text-gray-500'
+              ? 'bg-teal-500 text-white shadow-sm font-semibold'
+              : 'text-white/50 hover:text-white/80'
           "
           @click="unreadChannels = true"
         >
           Unread
         </div>
       </div>
-      <!-- Empty State -->
+
+      <!-- Loading state -->
       <div
-        v-if="channels.length === 0"
-        class="flex-1 flex items-center justify-center text-gray-500"
+        v-if="loadingChannels"
+        class="flex-1 flex items-center justify-center"
       >
-        No chats found
+        <div class="flex flex-col items-center gap-2 text-teal-400">
+          <div
+            class="w-6 h-6 border-2 border-teal-400 border-t-transparent rounded-full animate-spin"
+          />
+          <span class="text-xs text-white/40">Loading chats...</span>
+        </div>
       </div>
 
-      <!-- Channels List - Scrollable -->
+      <!-- Empty state -->
       <div
-        v-else
-        :key="Math.random() * 1000000"
-        class="flex-1 overflow-y-auto p-3"
+        v-else-if="channels.length === 0"
+        class="flex-1 flex flex-col items-center justify-center text-white/30 gap-2"
       >
-        <div class="space-y-2">
+        <i class="pi pi-comments text-3xl" />
+        <span class="text-sm">No chats yet</span>
+      </div>
+
+      <!-- Channels list -->
+      <div v-else class="flex-1 overflow-y-auto px-2 py-2 no-scrollbar">
+        <div class="space-y-1">
           <ChannelList
             v-for="(channel, index) in channels"
             :ref="(el) => (channelRefs[channel.cid] = el)"
@@ -463,82 +474,137 @@ const dismissError = () => {
           />
         </div>
       </div>
+
+      <!-- Logout button -->
+      <div class="flex-shrink-0 px-3 py-3 border-t border-white/5">
+        <button
+          class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-400 bg-red-500/10 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
+          @click="handleLogout"
+        >
+          <i class="pi pi-sign-out text-sm" />
+          Sign Out
+        </button>
+      </div>
     </div>
 
-    <!-- Main Chat Area - visible on sm+ or when in chat view on mobile -->
+    <!-- ═══════════════════════════════════════════════
+         MAIN CHAT AREA
+         - Desktop: fills remaining space
+         - Mobile: full screen when active, hidden otherwise
+    ═══════════════════════════════════════════════ -->
     <div
-      v-show="showChatOnMobile || !isMobile"
-      class="rounded-xl border border-gray-300 bg-white col-span-1 sm:col-span-3 md:col-span-6 flex flex-col h-[80vh]"
+      class="flex flex-col flex-1 min-w-0 bg-[#0f1f2d] transition-all duration-300 relative"
+      :class="isMobile && !showChatOnMobile ? 'hidden' : 'flex'"
     >
-      <!-- Channel Header - Fixed at top -->
-      <ChatHeader
-        v-if="selectedChannel"
-        :channel="selectedChannel"
-        :user-id="props.userId"
-        @back="toggleChatView(false)"
-        @toggle-sidebar="toggleSidebar"
-      />
+      <!-- No channel selected placeholder -->
       <div
         v-if="!selectedChannel"
-        class="flex-1 flex items-center justify-center text-gray-500 text-xs sm:text-base"
+        class="flex-1 flex flex-col items-center justify-center text-white/20 gap-3"
       >
-        Select a channel to start chatting
+        <i class="pi pi-comments text-5xl" />
+        <p class="text-base font-medium">
+          Select a conversation to start chatting
+        </p>
       </div>
 
-      <div
-        v-else
-        class="flex flex-col flex-1 min-h-0 rounded-xl bg-[#F5F9FF] m-2 sm:m-3 pt-2 md:p-2 border border-[#E5E7EB]"
-      >
-        <ChatMessage :channel="selectedChannel" />
-        <div class="flex flex-col">
-          <div
-            v-if="typingText"
-            class="text-xs sm:text-sm text-gray-500 animate-pulse px-2 sm:px-4 py-2"
-          >
-            {{ typingText }}
-          </div>
-
-          <MessageInput
+      <!-- Chat with selected channel -->
+      <template v-else>
+        <!-- Chat Header -->
+        <div class="flex-shrink-0 border-b border-white/5 bg-[#132336]">
+          <ChatHeader
             :channel="selectedChannel"
-            @send-message="handleSendMessage"
-            @typing="handleTyping"
-            @stop-typing="stopTyping"
+            :user-id="props.userId"
+            @back="toggleChatView(false)"
+            @toggle-sidebar="toggleSidebar"
           />
         </div>
-      </div>
+
+        <!-- Messages + Input -->
+        <div
+          class="flex flex-col flex-1 min-h-0 bg-[#0f1f2d] m-2 rounded-xl border border-white/5"
+        >
+          <ChatMessage :channel="selectedChannel" />
+
+          <div class="flex flex-col flex-shrink-0">
+            <div
+              v-if="typingText"
+              class="text-xs text-teal-400/70 animate-pulse px-4 py-1"
+            >
+              {{ typingText }}
+            </div>
+
+            <MessageInput
+              :channel="selectedChannel"
+              @send-message="handleSendMessage"
+              @typing="handleTyping"
+              @stop-typing="stopTyping"
+            />
+          </div>
+        </div>
+      </template>
     </div>
 
-    <div
-      v-show="showSidebarOnMobile || !isMobile"
-      class="col-span-12 md:col-span-3 z-10 h-[80vh]"
-    >
-      <SharedContent
-        v-if="selectedChannel"
-        :channel="selectedChannel"
-        :client="client"
-        @toggle-sidebar="toggleSidebar"
+    <!-- ═══════════════════════════════════════════════
+         SHARED CONTENT SIDEBAR OVERLAY
+         - Slides in from the right over the chat area
+         - Both desktop and mobile
+    ═══════════════════════════════════════════════ -->
+    <Transition name="slide-right">
+      <div
+        v-if="showSidebar && selectedChannel"
+        class="absolute top-0 right-0 h-full z-30 flex flex-col shadow-2xl"
+        :class="isMobile ? 'w-full' : 'w-80'"
+      >
+        <SharedContent
+          :channel="selectedChannel"
+          :client="client"
+          @toggle-sidebar="closeSidebar"
+        />
+      </div>
+    </Transition>
+
+    <!-- Backdrop for sidebar on desktop -->
+    <Transition name="fade">
+      <div
+        v-if="showSidebar && !isMobile"
+        class="absolute inset-0 z-20 bg-black/10"
+        @click="closeSidebar"
       />
-    </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
+/* Slide from right */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-right-enter-from,
+.slide-right-leave-to {
+  transform: translateX(100%);
+}
+.slide-right-enter-to,
+.slide-right-leave-from {
+  transform: translateX(0);
+}
+
+/* Backdrop fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 /* Custom scrollbar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>

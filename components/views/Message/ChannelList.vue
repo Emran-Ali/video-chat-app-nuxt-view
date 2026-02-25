@@ -78,41 +78,62 @@ defineExpose({ getChannelInfo })
 
 <template>
   <div
-    class="p-2 hover:bg-gray-100 cursor-pointer rounded-lg transition-colors duration-200"
-    :class="{
-      'bg-[#F5F9FF] ': props.selectCannelId === channel.cid,
-    }"
+    class="p-2.5 cursor-pointer rounded-xl transition-all duration-200"
+    :class="
+      props.selectCannelId === channel.cid
+        ? 'bg-teal-500/15 border border-teal-500/30'
+        : 'hover:bg-white/5 border border-transparent'
+    "
   >
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row gap-3 items-center">
+      <!-- Avatar -->
       <div
-        class="relative flex-shrink-0 rounded-full h-8 w-8 bg-gray-300 flex items-center justify-center"
+        class="relative flex-shrink-0 rounded-full h-10 w-10 flex items-center justify-center shadow"
+        :class="
+          channelInfo?.isOnline
+            ? 'bg-gradient-to-br from-teal-400 to-cyan-600'
+            : 'bg-white/10'
+        "
       >
         <img
           v-if="channelInfo?.image"
           :src="channelInfo?.image"
           alt="User"
-          class="object-cover h-8 w-8 rounded-full"
+          class="object-cover h-10 w-10 rounded-full"
         />
-        <span v-else class="font-semibold text-sm text-white">U</span>
+        <span v-else class="font-bold text-sm text-white uppercase">
+          {{ (channelInfo?.name || 'U').charAt(0) }}
+        </span>
         <span
           v-if="channelInfo?.isOnline"
-          class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"
-        ></span>
+          class="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-400 border-2 border-[#0d1b2a]"
+        />
       </div>
+
+      <!-- Text content -->
       <div class="min-w-0 flex-1">
-        <div class="flex justify-between">
-          <div class="truncate text-md">{{ channelInfo?.name }}</div>
-          <span class="text-sm text-[#71717A]">{{
+        <div class="flex justify-between items-center">
+          <div
+            class="truncate text-sm font-semibold"
+            :class="
+              props.selectCannelId === channel.cid
+                ? 'text-teal-300'
+                : 'text-white/80'
+            "
+          >
+            {{ channelInfo?.name || 'Unknown' }}
+          </div>
+          <span class="text-xs text-white/25 flex-shrink-0 ml-1">{{
             channelInfo?.lastMessageAt
           }}</span>
         </div>
-        <div class="flex justify-between">
-          <div class="text-sm text-[#71717A] truncate">
-            {{ channelInfo?.lastMessage || 'none' }}
+        <div class="flex justify-between items-center mt-0.5">
+          <div class="text-xs text-white/35 truncate">
+            {{ channelInfo?.lastMessage || '' }}
           </div>
           <span
             v-if="channelInfo?.unreadCount"
-            class="text-xs bg-black rounded-full h-4 w-4 text-center text-white"
+            class="text-xs bg-teal-500 rounded-full h-4 w-4 flex items-center justify-center text-white flex-shrink-0 ml-1 font-bold"
             >{{ channelInfo?.unreadCount }}</span
           >
         </div>

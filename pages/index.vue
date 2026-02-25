@@ -91,53 +91,36 @@ watch(user, async (newUser, oldUser) => {
 </script>
 
 <template>
-  <div class="container mx-auto max-w-7xl">
-    <div class="w-full md:w-[calc(100%-185px)] py-8 md:px-3">
-      <div v-if="isConnecting" class="text-center w-full mx-auto">
-        <div class="spinner"></div>
-        Loading chat...
-      </div>
-
+  <div class="h-full">
+    <div
+      v-if="isConnecting"
+      class="flex flex-col items-center justify-center h-full gap-3 text-cyan-400"
+    >
       <div
-        v-else-if="error"
-        class="text-red-500 text-center bg-red-50 p-4 rounded-md"
+        class="w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"
+      />
+      <span class="text-sm font-medium">Loading chat...</span>
+    </div>
+
+    <div v-else-if="error" class="flex items-center justify-center h-full">
+      <div
+        class="text-red-500 text-center bg-red-50 p-6 rounded-2xl border border-red-200 shadow"
       >
+        <i class="pi pi-exclamation-triangle text-2xl mb-2 block" />
         {{ error }}
         <button
-          class="ml-2 px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+          class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 block mx-auto"
           @click="$router.go(0)"
         >
           Refresh
         </button>
       </div>
+    </div>
 
-      <Chat v-else-if="client?.user" :client="client" :user-id="streamUserId" />
+    <Chat v-else-if="client?.user" :client="client" :user-id="streamUserId" />
 
-      <div v-else class="text-center text-gray-500">
-        Unable to initialize chat
-      </div>
+    <div v-else class="flex items-center justify-center h-full text-cyan-300">
+      Unable to initialize chat
     </div>
   </div>
 </template>
-
-<style scoped>
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  margin-right: 8px;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>
