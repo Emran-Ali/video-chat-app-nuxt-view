@@ -10,18 +10,8 @@ export const useStreamStore = defineStore('streamStore', {
     },
     getStreamUser: (state) => {
       const authStore = useAuthStore()
-      let id = ''
-
-      if (authStore.getUser?.role === 'STUDENT') {
-        id = `student-${authStore.getUser?.id}`
-      } else if (authStore.getUser?.role === 'TEACHER') {
-        id = `teacher-${authStore.getUser?.id}`
-      } else if (authStore.getUser?.role === 'ADMIN') {
-        id = `admin`
-      }
-
       return {
-        id,
+        id: authStore.streamUserId,
       }
     },
   },

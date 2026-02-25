@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import type { PreJoinDeviceSettings } from '@/types/stream/pre-join.type'
-import { useLessonBookStore } from '~/pinia/lesson-store/lesson-book'
 import PreJoinScreenTeacher from '~/components/stream/PreJoinScreenTeacher.vue'
 definePageMeta({
-  layout: 'empty',
+  layout: 'default',
   middleware: 'auth',
 })
 
 const streamStore = useStreamStore()
-const authStore = useAuthStore()
-const lessonStore = useLessonBookStore()
 const route = useRoute()
 const lessonId = computed(() => {
   const id = route.query.lessonId
@@ -25,7 +22,6 @@ const lessonMeetingId = computed(() => {
 const callType = route.query.callType
 
 const streamUser = computed(() => streamStore.getStreamUser)
-const isTeacher = computed(() => authStore.isTeacher)
 
 const readyToJoin = ref(false)
 const settings = ref<PreJoinDeviceSettings>({})
@@ -45,7 +41,6 @@ onMounted(() => {
   if (!lessonId.value || !callType) {
     navigateTo('/')
   }
-  lessonStore.fetchLessonMeeting(lessonMeetingId.value)
 })
 </script>
 
