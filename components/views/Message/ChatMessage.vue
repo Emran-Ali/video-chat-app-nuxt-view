@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.getUser)
-const userId = user.value?.streamUser
+const userId = user.value?.streamId
 
 // State
 const messages = ref<MessageResponse[]>([])
@@ -286,6 +286,8 @@ const linkify = (text?: string) => {
   if (!text) return ''
   const escaped = escapeHtml(text)
 
+  const urlPattern = /((https?:\/\/)|(www\.))[\w\-\./?%&=+#@:;,$()~']*/gi
+
   return escaped.replace(urlPattern, (url) => {
     let href = url
     if (!/^https?:\/\//i.test(href)) href = 'https://' + href
@@ -294,7 +296,7 @@ const linkify = (text?: string) => {
     const cleanHref = match ? match[1] : href
     const trailing = match ? match[2] : ''
 
-    return `<a href="${cleanHref}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-words">${url}</a>${trailing}`
+    return `<a href="${cleanHref}" target="_blank" rel="noopener noreferrer" class="text-blue-100 hover:underline break-words">${url}</a>${trailing}`
   })
 }
 
@@ -428,6 +430,7 @@ onUnmounted(() => {
               :alt="message.user!.name || 'User'"
               class="object-cover h-8 w-8"
             />
+
             <span v-else class="text-gray-600 font-semibold text-sm">
               {{
                 (message.user!.name || message.user!.id || 'U')[0].toUpperCase()
@@ -435,7 +438,6 @@ onUnmounted(() => {
             </span>
           </div>
           <div v-else class="flex-shrink-0 overflow-hidden h-8 w-8" />
-
           <!-- Message bubble -->
           <div class="flex flex-col gap-1 max-w-full">
             <div
@@ -452,8 +454,8 @@ onUnmounted(() => {
               class="text-sm break-words overflow-hidden"
               :class="[
                 message.user!.id === userId
-                  ? 'bg-cyan-950/30 text-black '
-                  : 'bg-blue-900/10 text-black ',
+                  ? 'bg-cyan-500/50 text-white '
+                  : 'bg-blue-400/50 text-white ',
                 getMessageGrouping(message, index).isFirst &&
                 getMessageGrouping(message, index).isLast
                   ? 'rounded-2xl'
@@ -491,7 +493,7 @@ onUnmounted(() => {
                     <Image
                       :src="renderAttachment(attachment)?.url"
                       :alt="renderAttachment(attachment)?.alt"
-                      class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
+                      class="max-w-lg h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
                       :pt="{
                         root: { class: 'rounded-lg overflow-hidden' },
                         image: { class: 'rounded-lg' },

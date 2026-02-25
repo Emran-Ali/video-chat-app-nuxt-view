@@ -381,11 +381,6 @@ const dismissError = () => {
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════
-         CHANNEL LIST PANEL
-         - Desktop: always visible, fixed width
-         - Mobile: full screen, hidden when chat is open
-    ═══════════════════════════════════════════════ -->
     <div
       class="channel-list-panel flex flex-col bg-[#0d1b2a] border-r border-white/5 flex-shrink-0 transition-all duration-300"
       :class="
@@ -487,16 +482,10 @@ const dismissError = () => {
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════
-         MAIN CHAT AREA
-         - Desktop: fills remaining space
-         - Mobile: full screen when active, hidden otherwise
-    ═══════════════════════════════════════════════ -->
     <div
       class="flex flex-col flex-1 min-w-0 bg-[#0f1f2d] transition-all duration-300 relative"
       :class="isMobile && !showChatOnMobile ? 'hidden' : 'flex'"
     >
-      <!-- No channel selected placeholder -->
       <div
         v-if="!selectedChannel"
         class="flex-1 flex flex-col items-center justify-center text-white/20 gap-3"
@@ -544,11 +533,6 @@ const dismissError = () => {
       </template>
     </div>
 
-    <!-- ═══════════════════════════════════════════════
-         SHARED CONTENT SIDEBAR OVERLAY
-         - Slides in from the right over the chat area
-         - Both desktop and mobile
-    ═══════════════════════════════════════════════ -->
     <Transition name="slide-right">
       <div
         v-if="showSidebar && selectedChannel"
@@ -566,7 +550,7 @@ const dismissError = () => {
     <!-- Backdrop for sidebar on desktop -->
     <Transition name="fade">
       <div
-        v-if="showSidebar && !isMobile"
+        v-if="showSidebar"
         class="absolute inset-0 z-20 bg-black/10"
         @click="closeSidebar"
       />

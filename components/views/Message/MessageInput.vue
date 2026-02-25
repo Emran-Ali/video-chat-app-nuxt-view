@@ -420,7 +420,7 @@ defineExpose({
         <!-- Image preview -->
         <div v-if="file.type === 'image'" class="w-20 h-20 relative">
           <img
-            :src="getImageVersions(file.previewUrl).optimized"
+            :src="file.previewUrl"
             :alt="file.name"
             class="w-full h-full object-cover"
           />
