@@ -84,25 +84,27 @@ onMounted(async () => {
     </div>
 
     <!-- Right: action icons -->
-    <div class="flex flex-row items-center gap-1">
+    <div class="flex flex-row items-center gap-2">
       <button
-        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        class="w-9 h-9 flex items-center justify-center rounded-full bg-teal-400/20 text-teal-400 hover:bg-teal-500/20 hover:text-teal-500 transition-all duration-200"
         title="Video call"
       >
-        <i class="pi pi-video text-sm" />
+        <i class="pi pi-video text-sm md:text-md" />
       </button>
+
       <button
-        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        class="w-9 h-9 flex items-center justify-center rounded-full bg-teal-600/20 text-teal-500 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
         title="Voice call"
       >
-        <i class="pi pi-phone text-sm" />
+        <i class="pi pi-phone text-sm md:text-md" />
       </button>
+
       <button
-        class="p-2 rounded-full bg-white/5 text-white/50 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
+        class="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 text-white/50 hover:bg-white/20 hover:text-teal-400/50 transition-all duration-200"
         title="Shared content"
         @click="handleToggleSidebar"
       >
-        <i class="pi pi-info-circle text-sm" />
+        <i class="pi pi-info-circle text-sm md:text-md" />
       </button>
     </div>
   </div>
