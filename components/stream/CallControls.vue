@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Call, StreamVideoParticipant } from '@stream-io/video-client'
-import { isMobile } from '~/utils/stream/Mobile'
 import { useNoiseCancellation } from '~/composables/stream/useNoiseCancellation'
 import { useRecording } from '~/composables/stream/useRecording'
-// import { useCountdown } from '~/composables/useCountdown'
+import { isMobile } from '~/utils/stream/Mobile'
 
 import type {
-  ConnectionStatus,
   ConnectionQuality,
+  ConnectionStatus,
 } from '~/composables/stream/useVideoCall'
 
 // Define a safe type for MediaDeviceInfo
@@ -38,24 +37,14 @@ const streamStore = useStreamStore()
 const { play } = useSound('/sound/notification.wav')
 const { is } = useGlobalStore()
 
-const { remainingMs, formattedRemaining, setEndTime } = useCountdown(
-  props.callEndTime
-)
-
 // UI state
 const showSettings = ref(false)
-const { confirm, confirmDialogRef } = useConfirmationDialog()
 
-// Check if someone else is sharing their screen (not the current user)
 const isSomeoneElseSharing = computed(() => {
   if (!props.screenSharingParticipant) return false
 
-  // Check if the screen sharing participant is the current user
-  // If current user's screen share status is 'enabled', they are the one sharing
   const isCurrentUserSharing = props.screenShareStatus === 'enabled'
 
-  // If there's a screen sharing participant and current user is not sharing,
-  // then someone else is sharing
   return !isCurrentUserSharing
 })
 
@@ -117,15 +106,12 @@ const selectAudioDevice = async (event: Event) => {
   const currentMicState = props.micStatus === 'enabled'
 
   try {
-    // Disable microphone first if it's enabled
     if (currentMicState) {
       await props.call.microphone.disable()
     }
 
-    // Select the new audio device
     await props.call.microphone.select(value)
 
-    // Re-enable microphone if it was enabled before
     if (currentMicState) {
       await props.call.microphone.enable()
     }
@@ -189,18 +175,7 @@ const emit = defineEmits<{
 
 // Leave call function
 const leaveCall = () => {
-  // Close settings dropdown if open
-  confirm({
-    header: `Confirm Leaving the Call`,
-    message: `Are you sure you want to leave the call?`,
-    type: 'danger',
-    onAccept: async () => {
-      showSettings.value = false
-
-      // Emit leave call event
-      emit('leave-call')
-    },
-  })
+  emit('leave-call')
 }
 
 // Chat toggle function
@@ -286,28 +261,6 @@ onUnmounted(() => {
 const showExtendPrompt = ref(false)
 const hasShownExtendPrompt = ref(false)
 
-watch(
-  () => remainingMs.value,
-  (val) => {
-    // Automatically end call when time expires
-    if (props.callEndTime && val <= 0) {
-      emit('leave-call')
-      return
-    }
-
-    if (
-      props.isHost &&
-      val > 0 &&
-      val <= 600000 && // 10 minutes = 600,000ms
-      !hasShownExtendPrompt.value
-    ) {
-      showExtendPrompt.value = true
-      hasShownExtendPrompt.value = true
-      play()
-    }
-  }
-)
-
 const dismissExtendPrompt = () => {
   showExtendPrompt.value = false
 }
@@ -321,13 +274,6 @@ const extendByMinutes = async (minutes: number) => {
     showExtendPrompt.value = false
   }
 }
-
-watch(
-  () => props.callEndTime,
-  (newVal) => {
-    setEndTime(newVal)
-  }
-)
 </script>
 
 <template>
@@ -652,20 +598,6 @@ watch(
           :is-recording="isRecording"
           :start-time="recordingStartTime"
         />
-
-        <!-- Lesson countdown timer -->
-
-        <div
-          v-if="remainingMs > 0"
-          class="lesson-timer"
-          :class="{
-            ending: remainingMs <= 600000 && remainingMs > 0, // 10 minutes
-            ended: remainingMs === 0,
-          }"
-        >
-          <i class="fas fa-clock pill-icon" />
-          <span class="pill-text">{{ formattedRemaining }}</span>
-        </div>
       </div>
     </div>
 
@@ -696,59 +628,12 @@ watch(
         :start-time="recordingStartTime"
       />
 
-      <!-- Lesson countdown timer -->
+      <!-- call countdown timer -->
 
-      <div
-        v-if="remainingMs > 0"
-        class="lesson-timer status-pill"
-        :class="{
-          ending: remainingMs <= 600000 && remainingMs > 0, // 10 minutes
-          ended: remainingMs === 0,
-        }"
-      >
+      <div>
         <i class="fas fa-clock pill-icon" />
-        <span class="pill-text">{{ formattedRemaining }}</span>
+        TODO: need to implement call duration timer
       </div>
-
-      <!-- Extend call prompt (host only) -->
-      <div
-        v-if="showExtendPrompt"
-        class="extend-prompt"
-        role="dialog"
-        aria-live="polite"
-      >
-        <div class="extend-content">
-          <div class="extend-title">
-            <i class="fas fa-hourglass-half" />
-            10 minutes left
-          </div>
-          <div class="extend-sub">Need more time? Extend the call.</div>
-          <div class="extend-actions">
-            <button
-              :disabled="is('extendCallDuration')"
-              :class="{ 'opacity-50': is('extendCallDuration') }"
-              class="extend-btn primary"
-              @click="extendByMinutes(10)"
-            >
-              {{ is('extendCallDuration') ? 'Extending...' : 'Extend 10 min' }}
-            </button>
-            <button class="extend-btn ghost" @click="dismissExtendPrompt">
-              Not now
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Noise cancellation status indicator -->
-      <!-- <div
-        v-if="isNoiseCancellationSupported"
-        class="noise-cancellation-status"
-      >
-        <span v-if="isNoiseCancellationEnabled" class="status-enabled">
-          Noise Cancellation: On
-        </span>
-        <span v-else class="status-disabled"> Noise Cancellation: Off </span>
-      </div> -->
     </div>
   </div>
 </template>
@@ -803,68 +688,6 @@ watch(
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1;
-}
-
-/* Lesson timer pill */
-.lesson-timer {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: linear-gradient(
-    135deg,
-    rgba(14, 165, 233, 0.12) 0%,
-    /* sky-500 */ rgba(2, 132, 199, 0.12) 100% /* sky-600 */
-  );
-  color: #7dd3fc; /* sky-300 */
-  border: 1px solid rgba(14, 165, 233, 0.35);
-  backdrop-filter: blur(10px);
-  align-self: center;
-}
-
-.lesson-timer .pill-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #bae6fd, #38bdf8);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
-}
-
-.lesson-timer .pill-text {
-  color: #e0f2fe; /* sky-100 */
-  min-width: 3.5rem; /* Fixed width to prevent layout shift */
-  display: inline-block;
-  text-align: center;
-  font-variant-numeric: tabular-nums; /* Use tabular numbers for consistent width */
-}
-
-.lesson-timer .pill-icon {
-  font-size: 0.9rem;
-  color: #bae6fd; /* sky-200 */
-  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
-}
-
-.lesson-timer.ending {
-  background: linear-gradient(
-    135deg,
-    rgba(250, 204, 21, 0.14) 0%,
-    /* amber-400 */ rgba(245, 158, 11, 0.14) 100% /* amber-500 */
-  );
-  color: #fde68a; /* amber-200 */
-  border-color: rgba(245, 158, 11, 0.45);
-}
-
-.lesson-timer.ended {
-  background: linear-gradient(
-    135deg,
-    rgba(239, 68, 68, 0.14) 0%,
-    /* red-500 */ rgba(220, 38, 38, 0.14) 100% /* red-600 */
-  );
-  color: #fecaca; /* red-200 */
-  border-color: rgba(239, 68, 68, 0.45);
 }
 
 /* Modern button styling - Google Meet inspired */
@@ -1475,7 +1298,6 @@ watch(
 
   .connection-status,
   .noise-cancellation-status,
-  .lesson-timer,
   .status-pill {
     font-size: 0.8125rem;
     padding: 0.375rem 0.75rem;
@@ -1573,7 +1395,6 @@ watch(
 
   .connection-status,
   .noise-cancellation-status,
-  .lesson-timer,
   .status-pill {
     font-size: 0.75rem;
     padding: 0.25rem 0.5rem;

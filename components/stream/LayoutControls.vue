@@ -18,24 +18,6 @@ const emit = defineEmits<{
 
 <template>
   <div class="layout-controls">
-    <!-- <button
-      @click="emit('toggleLayout')"
-      class="layout-btn"
-      :disabled="!!screenSharingParticipant"
-      :title="
-        screenSharingParticipant
-          ? 'Layout locked during screen sharing'
-          : 'Toggle between grid and spotlight view'
-      "
-    >
-      <span v-if="layoutMode === 'grid'">
-        <i class="fas fa-th-large"></i>
-      </span>
-      <span v-else>
-        <i class="fas fa-user"></i>
-      </span>
-    </button> -->
-
     <button
       v-if="effectiveLayoutMode === 'spotlight'"
       @click="emit('toggleSidebar')"
@@ -73,12 +55,7 @@ const emit = defineEmits<{
   display: flex;
   gap: 0.75rem;
   z-index: 30;
-  /* backdrop-filter: blur(10px);
-  background: rgba(0, 0, 0, 0.1); */
-  /* padding: 0.5rem; */
   border-radius: 16px;
-  /* border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); */
 }
 
 .layout-controls button {

@@ -13,7 +13,7 @@ type UploadProgressCallback = (progress: number) => void
 
 // Create a custom Axios instance
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: 'https://api.craft-music.dev/',
+  baseURL: '/api',
   timeout: 10000, // Timeout in ms
   headers: {
     'Content-Type': 'application/json',
@@ -33,7 +33,6 @@ axiosInstance.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`
       }
 
-      // Handling the headers on the content-type
       if (config?.data instanceof FormData) {
         // addin the multipart form data here
         config.headers['Content-Type'] = 'multipart/form-data'
@@ -54,9 +53,6 @@ axiosInstance.interceptors.request.use(
   }
 )
 
-// adminToken
-
-// Response interceptor
 axiosInstance.interceptors.response.use(
   async (response: AxiosResponse): Promise<AxiosResponse> => {
     return response

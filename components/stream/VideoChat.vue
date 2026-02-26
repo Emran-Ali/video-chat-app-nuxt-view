@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { PreJoinDeviceSettings } from '@/types/stream/pre-join.type'
 import { useCallLayout } from '~/composables/stream/useCallLayout'
-import { useChatClient } from '~/composables/stream/useChatClient'
 import { useScreenShareNotifications } from '~/composables/stream/useScreenShareNotifications'
 import { useVideoCall } from '~/composables/stream/useVideoCall'
-import TextMessageOverlay from '~/pages/teacher/account/TextMessageOverlay.vue'
+// import { useChatClient } from '~/composables/stream/useChatClient'
 
 const props = defineProps<{
   streamUser: any
@@ -20,8 +19,6 @@ const router = useRouter()
 // API setup
 const apiKey = config.public.streamApiKey
 const token = computed(() => streamStore.getStreamToken)
-
-console.log('token.value', token.value)
 
 // Initialize video call with pre-join settings
 const {
@@ -58,17 +55,17 @@ const {
 const isHost = computed(() => props.streamUser.id.startsWith('teacher'))
 const isAdmin = computed(() => props.streamUser.id.startsWith('admin'))
 
-// Initialize chat functionality
-const {
-  chatClient,
-  chatChannel,
-  chatReceiverParticipant,
-  unreadMessageCount,
-  isChatConnecting,
-  chatError,
-  isChatOpen,
-  toggleChat,
-} = useChatClient(apiKey, token.value, participants, props.streamUser.id, call)
+// TODO: implement chat functionality
+// const {
+//   chatClient,
+//   chatChannel,
+//   chatReceiverParticipant,
+//   unreadMessageCount,
+//   isChatConnecting,
+//   chatError,
+//   isChatOpen,
+//   toggleChat,
+// } = useChatClient(apiKey, token.value, participants, props.streamUser.id, call)
 
 // Initialize layout management
 const {
@@ -133,22 +130,15 @@ watch(connectionStatus, (newStatus) => {
 
 onMounted(async () => {
   try {
-    // Join the call
     await joinCall()
     isJoining.value = false
-    // Setup participants subscription with the viewport element
     if (callContainerRef.value) {
       setupParticipantsSubscription(callContainerRef.value.participantsRef)
     }
 
-    // Setup screen share listener
     setupScreenShareListener(participants)
 
-    // Setup fullscreen listener
     setupFullscreenListener()
-
-    // Initialize chat client
-    // await initializeChatClient() // This function is now handled by useChatClient
   } catch (error) {
     console.log(error)
   }
@@ -158,7 +148,6 @@ onBeforeUnmount(() => {
   cleanupVideoCall()
   cleanupFullscreenListener()
   cleanupScreenShareNotifications()
-  // cleanupChat()
 })
 
 function getErrorMessage(error) {
@@ -204,7 +193,6 @@ function getErrorMessage(error) {
       </div>
       <div class="loading-text">Joining call...</div>
     </div>
-    <!-- Main call container -->
     <StreamCallContainer
       ref="callContainerRef"
       :effective-layout-mode="effectiveLayoutMode"
@@ -217,7 +205,6 @@ function getErrorMessage(error) {
       :is-host="isHost"
     />
 
-    <!-- Layout controls -->
     <StreamLayoutControls
       :layout-mode="layoutMode"
       :effective-layout-mode="effectiveLayoutMode"
@@ -229,25 +216,10 @@ function getErrorMessage(error) {
       @toggle-full-screen="toggleFullScreen"
     />
 
-    <!-- Show call ended message if disconnected -->
     <div
       v-if="connectionStatus === 'disconnected'"
       class="call-ended-container"
-    >
-      <!-- <h2>Call Ended</h2>
-      <p>You have left the video call.</p>
-
-      <div v-if="isHost">
-        <NuxtLink to="/teacher/account" class="dashboard-btn">
-          Go to Dashboard
-        </NuxtLink>
-      </div>
-      <div v-else>
-        <NuxtLink to="/student/account" class="dashboard-btn">
-          Go to Dashboard
-        </NuxtLink>
-      </div> -->
-    </div>
+    ></div>
 
     <StreamCallControls
       :call="call"
@@ -275,7 +247,7 @@ function getErrorMessage(error) {
       </p>
     </div>
   </div>
-  <TextMessageOverlay
+  <!-- <TextMessageOverlay
     v-if="chatReceiverParticipant"
     :visible="isChatOpen"
     :chat-client="chatClient"
@@ -283,7 +255,7 @@ function getErrorMessage(error) {
     :is-connecting="isChatConnecting"
     :error="chatError"
     @update:visible="toggleChat"
-  />
+  /> -->
 </template>
 
 <style scoped>
@@ -306,7 +278,6 @@ function getErrorMessage(error) {
     sans-serif;
 }
 
-/* Loading state with modern design */
 .video-chat-loading-container {
   position: absolute;
   top: 0;
@@ -423,7 +394,6 @@ function getErrorMessage(error) {
   line-height: 1.6;
 }
 
-/* Fullscreen mode adjustments */
 .is-fullscreen {
   height: 100vh;
   width: 100vw;

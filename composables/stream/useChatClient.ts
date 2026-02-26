@@ -1,5 +1,5 @@
-import { StreamChat, type Channel } from 'stream-chat'
 import type { Call } from '@stream-io/video-client'
+import { StreamChat, type Channel } from 'stream-chat'
 
 export interface Participant {
   userId: string
@@ -39,7 +39,6 @@ export const useChatClient = (
     return otherUser || chatReceiver.value || null
   })
 
-  // Initialize chat client
   const initializeChatClient = async () => {
     try {
       isChatConnecting.value = true
@@ -225,7 +224,6 @@ export const useChatClient = (
     chatError: readonly(chatError),
     isChatOpen,
 
-    // Methods
     toggleChat,
   }
 }

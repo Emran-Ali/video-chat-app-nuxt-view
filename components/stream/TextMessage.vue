@@ -14,7 +14,6 @@ const typingUsers = ref<{ [key: string]: string }>({})
 const typingTimeout = ref<{ [key: string]: any }>({})
 const error = ref<string | null>(null)
 
-// Computed
 const typingText = computed(() => {
   const userIds = Object.keys(typingUsers.value).filter(
     (id) => id !== props.senderUserId

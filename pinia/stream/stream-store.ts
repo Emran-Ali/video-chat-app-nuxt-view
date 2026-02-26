@@ -27,60 +27,29 @@ export const useStreamStore = defineStore('streamStore', {
       useCookie('_stream_token').value = null
     },
 
-    async isHostOnline(callId: any) {
+    async createVideoCall(userId: string, otherUsers: string[]) {
       const { $axios } = useNuxtApp()
 
-      try {
-        const response = await $axios.post(`/stream-webhook/isHostOnline`, {
-          callId: callId.toString(),
-        })
-        return response?.data
-      } catch (error) {
-        console.error('isHostOnline Error', error)
-        throw error
-      }
-    },
-
-    async createCall(lessonId: any, teacherId: any, studentId: any) {
-      const { $axios } = useNuxtApp()
-
-      return wrapApiCall('createCall', async () => {
-        const response = await $axios.post(
-          `/stream-webhook/create-lesson-call`,
-          {
-            lessonMeetingId: lessonId.toString(),
-            teacherId: teacherId.toString(),
-            studentId: studentId.toString(),
-          }
-        )
-
-        return response?.data
-      })
-    },
-
-    async notifyStudent(lessonMeetingId: number) {
-      const { $axios } = useNuxtApp()
-
-      return wrapApiCall('notifyStudent', async () => {
-        const response = await $axios.post(`/stream-webhook/notify-lesson`, {
-          lessonMeetingId,
+      return wrapApiCall('createVideoCall', async () => {
+        const response = await $axios.post(`/call/video-call`, {
+          userId,
+          otherUsers,
         })
 
         return response?.data
       })
     },
 
-    async extendCallDuration(lessonId: string, minutes: number) {
+    async createAudioCall(userId: string, otherUsers: string[]) {
       const { $axios } = useNuxtApp()
-      const { handleSuccess } = useGlobalStore()
 
-      return wrapApiCall('extendCallDuration', async () => {
-        await $axios.post(`/stream-webhook/extend-call`, {
-          callId: lessonId,
-          duration: minutes,
+      return wrapApiCall('createAudioCall', async () => {
+        const response = await $axios.post(`/call/audio-call`, {
+          userId,
+          otherUsers,
         })
 
-        handleSuccess({ message: 'Call extended successfully' })
+        return response?.data
       })
     },
   },

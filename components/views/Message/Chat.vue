@@ -23,9 +23,7 @@ const unreadChannels = ref<boolean>(false)
 const channelRefs = ref<Record<string, any>>({})
 
 const isMobile = ref(false)
-// On mobile, show channel list by default; show chat when a channel is selected
 const showChatOnMobile = ref(false)
-// Sidebar (SharedContent) - always hidden by default, shown as overlay
 const showSidebar = ref(false)
 
 const checkMobileView = () => {
