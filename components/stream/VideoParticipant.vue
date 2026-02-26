@@ -2,15 +2,14 @@
 import {
   Call,
   type StreamVideoParticipant,
-  hasVideo,
   hasAudio,
+  hasVideo,
 } from '@stream-io/video-client'
 
 const props = defineProps<{
   participant: StreamVideoParticipant
   call: Call
   isSpotlight?: boolean
-  isHost?: boolean
 }>()
 
 console.log('props.participant', props.participant)
@@ -145,7 +144,7 @@ onUnmounted(() => {
     }"
   >
     <!-- Three-dot menu -->
-    <div v-if="!isLocal && isHost && !isMuted" class="menu-container">
+    <div v-if="!isLocal && !isMuted" class="menu-container">
       <button class="menu-button" @click.stop="toggleMenu" title="Options">
         <i class="fas fa-ellipsis-v"></i>
       </button>

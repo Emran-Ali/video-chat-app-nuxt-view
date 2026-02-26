@@ -32,6 +32,42 @@ watch(
   (): Channel => props.channel,
   () => getUserInfo()
 )
+const streamStore = useStreamStore()
+
+const startVideoCall = async () => {
+  if (!userInfo.value?.id) return
+
+  const response = await streamStore.createVideoCall(props.userId, [
+    userInfo.value.id,
+  ])
+  if (response?.callId) {
+    navigateTo({
+      path: '/call',
+      query: {
+        callId: response.callId,
+        callType: 'default',
+      },
+    })
+  }
+}
+
+const startAudioCall = async () => {
+  if (!userInfo.value?.id) return
+
+  const response = await streamStore.createAudioCall(props.userId, [
+    userInfo.value.id,
+  ])
+  if (response?.callId) {
+    navigateTo({
+      path: '/call',
+      query: {
+        callId: response.callId,
+        callType: 'audio_room',
+      },
+    })
+  }
+}
+
 onMounted(async () => {
   getUserInfo()
 })
@@ -88,6 +124,7 @@ onMounted(async () => {
       <button
         class="w-9 h-9 flex items-center justify-center rounded-full bg-teal-400/20 text-teal-400 hover:bg-teal-500/20 hover:text-teal-500 transition-all duration-200"
         title="Video call"
+        @click="startVideoCall"
       >
         <i class="pi pi-video text-sm md:text-md" />
       </button>
@@ -95,6 +132,7 @@ onMounted(async () => {
       <button
         class="w-9 h-9 flex items-center justify-center rounded-full bg-teal-600/20 text-teal-500 hover:bg-teal-500/20 hover:text-teal-400 transition-all duration-200"
         title="Voice call"
+        @click="startAudioCall"
       >
         <i class="pi pi-phone text-sm md:text-md" />
       </button>

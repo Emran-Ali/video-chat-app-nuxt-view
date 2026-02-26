@@ -9,7 +9,6 @@ defineProps<{
   sidebarParticipants: StreamVideoParticipant[]
   participants: StreamVideoParticipant[]
   call: any
-  isHost: boolean
 }>()
 
 const participantsRef = ref<HTMLElement | null>(null)
@@ -38,7 +37,6 @@ defineExpose({
           :participant="activeParticipant"
           :call="call"
           :is-spotlight="true"
-          :is-host="isHost"
         />
       </div>
     </div>
@@ -65,7 +63,6 @@ defineExpose({
         :participant="participant"
         :call="call"
         :is-spotlight="false"
-        :is-host="isHost"
       />
     </div>
   </div>

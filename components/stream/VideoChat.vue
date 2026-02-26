@@ -52,9 +52,6 @@ const {
   }
 )
 
-const isHost = computed(() => props.streamUser.id.startsWith('teacher'))
-const isAdmin = computed(() => props.streamUser.id.startsWith('admin'))
-
 // TODO: implement chat functionality
 // const {
 //   chatClient,
@@ -99,32 +96,12 @@ const isJoining = ref(true)
 // take student to review page after leaving call
 const handleLeaveCall = async () => {
   await leaveCall()
-  if (props.callId.includes('admin-test-call')) {
-    router.push('/')
-    return
-  }
-  if (isHost.value) {
-    await call.endCall()
-
-    // setTimeout(() => {
-    //   router.push('/teacher/account')
-    // }, 2000)
-  } else if (isAdmin.value) {
-    router.push(`/admin-test-call`)
-  } else {
-    // setTimeout(() => {
-    //   router.push(`/student/account/feedback?lessonId=${props.callId}`)
-    // }, 1000)
-  }
+  router.push('/')
 }
 
 watch(connectionStatus, (newStatus) => {
   if (newStatus === 'disconnected') {
-    if (isHost.value) {
-      router.push('/teacher/account')
-    } else {
-      router.push(`/student/account/`)
-    }
+    router.push('/')
   }
 })
 
@@ -202,7 +179,6 @@ function getErrorMessage(error) {
       :sidebar-participants="sidebarParticipants"
       :participants="participants"
       :call="call"
-      :is-host="isHost"
     />
 
     <StreamLayoutControls
@@ -231,11 +207,7 @@ function getErrorMessage(error) {
       :camera-direction="cameraDirection"
       :volume="volume"
       :screen-sharing-participant="screenSharingParticipant"
-      :is-host="isHost"
-      :chat-receiver-participant="chatReceiverParticipant?.userId || null"
-      :unread-message-count="unreadMessageCount"
       :call-end-time="callEndTime"
-      @toggle-chat="toggleChat"
       @leave-call="handleLeaveCall"
     />
   </div>

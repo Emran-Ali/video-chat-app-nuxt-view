@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const callId = await StreamCallService.createVideoCall(userId, otherUsers)
+    const callId = await StreamCallService.createAudioCall(userId, otherUsers)
     return {
       callId,
       message: 'Call created successfully',

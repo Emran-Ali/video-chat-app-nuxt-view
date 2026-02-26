@@ -26,7 +26,6 @@ const props = defineProps<{
   screenShareStatus: string
   cameraDirection: string
   volume: number
-  isHost: boolean
   screenSharingParticipant?: StreamVideoParticipant
   chatReceiverParticipant?: string | null //used to track the other participant for chat
   unreadMessageCount?: number
@@ -408,7 +407,6 @@ const extendByMinutes = async (minutes: number) => {
 
         <!-- Recording control -->
         <button
-          v-if="props.isHost"
           class="control-btn recording-btn"
           :class="{ active: isRecording, loading: isRecordingLoading }"
           :disabled="isRecordingLoading"

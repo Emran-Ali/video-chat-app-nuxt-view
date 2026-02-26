@@ -3,7 +3,6 @@
 import type {
   AxiosError,
   AxiosInstance,
-  AxiosProgressEvent,
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios'
@@ -94,37 +93,5 @@ axiosInstance.interceptors.response.use(
     )
   }
 )
-
-// File upload function with progress tracking
-export const uploadFile = async (
-  url: string,
-  file: File,
-  onUploadProgress?: UploadProgressCallback
-): Promise<any> => {
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const response = await axiosInstance.post(url, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-        if (onUploadProgress) {
-          const progress = Math.round(
-            (progressEvent.loaded / progressEvent.total!) * 100
-          )
-          onUploadProgress(progress)
-        }
-      },
-    })
-
-    console.log('File Upload Response:', response.data)
-    return response.data
-  } catch (error) {
-    console.error('File Upload Error: 🦐', error)
-    throw error
-  }
-}
 
 export default axiosInstance

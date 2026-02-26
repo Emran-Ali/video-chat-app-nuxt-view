@@ -6,7 +6,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const isPublicRoute = publicRoutes.some((route) =>
     normalizedPath.startsWith(route)
   )
-  const protectedRoutes = ['/message', '/call', '/']
+  const protectedRoutes = ['/message', '/audio', '/video', '/']
   const isProtectedRoute = protectedRoutes.some(
     (route) =>
       normalizedPath === route || normalizedPath.startsWith(route + '/')

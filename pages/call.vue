@@ -8,28 +8,23 @@ definePageMeta({
 const streamStore = useStreamStore()
 const route = useRoute()
 
-const callType = route.query.callType
+const callId = route.query.callId as string
+const callType = route.query.callType as string
 
 const streamUser = computed(() => streamStore.getStreamUser)
 
 const readyToJoin = ref(false)
-const settings = ref<PreJoinDeviceSettings>({})
-
-const handleJoinCall = (preJoinDeviceSettings: PreJoinDeviceSettings) => {
-  settings.value.isCameraOn = preJoinDeviceSettings.isCameraOn
-  settings.value.isMicrophoneOn = preJoinDeviceSettings.isMicrophoneOn
-  settings.value.selectedCameraId = preJoinDeviceSettings.selectedCameraId
-  settings.value.selectedMicrophoneId =
-    preJoinDeviceSettings.selectedMicrophoneId
-  settings.value.selectedSpeakerId = preJoinDeviceSettings.selectedSpeakerId
-
-  readyToJoin.value = true
-}
+const settings = ref<PreJoinDeviceSettings>({
+  isCameraOn: callType !== 'audio_room',
+  isMicrophoneOn: true,
+})
 
 onMounted(() => {
-  if (!callType) {
+  if (!callId || !callType) {
     navigateTo('/')
+    return
   }
+  readyToJoin.value = true
 })
 </script>
 
@@ -38,7 +33,7 @@ onMounted(() => {
     v-if="readyToJoin"
     :stream-user="streamUser"
     :settings="settings"
-    :call-id="`lesson-${lessonId}`"
-    :call-type="callType as string"
+    :call-id="callId"
+    :call-type="callType"
   />
 </template>
