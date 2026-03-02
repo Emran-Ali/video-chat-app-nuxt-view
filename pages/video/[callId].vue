@@ -17,17 +17,6 @@ const streamUser = computed(() => streamStore.getStreamUser)
 const readyToJoin = ref(false)
 const settings = ref<PreJoinDeviceSettings>({})
 
-const handleJoinCall = (preJoinDeviceSettings: PreJoinDeviceSettings) => {
-  settings.value.isCameraOn = preJoinDeviceSettings.isCameraOn
-  settings.value.isMicrophoneOn = preJoinDeviceSettings.isMicrophoneOn
-  settings.value.selectedCameraId = preJoinDeviceSettings.selectedCameraId
-  settings.value.selectedMicrophoneId =
-    preJoinDeviceSettings.selectedMicrophoneId
-  settings.value.selectedSpeakerId = preJoinDeviceSettings.selectedSpeakerId
-
-  readyToJoin.value = true
-}
-
 onMounted(() => {
   if (!callId) {
     navigateTo('/')

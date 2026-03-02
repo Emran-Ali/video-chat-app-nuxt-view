@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { PreJoinDeviceSettings } from '@/types/stream/pre-join.type'
+import { CallingState } from '@stream-io/video-client'
 import { useCallLayout } from '~/composables/stream/useCallLayout'
 import { useScreenShareNotifications } from '~/composables/stream/useScreenShareNotifications'
 import { useVideoCall } from '~/composables/stream/useVideoCall'
-// import { useChatClient } from '~/composables/stream/useChatClient'
-
 const props = defineProps<{
   streamUser: any
   settings: PreJoinDeviceSettings
@@ -33,6 +32,7 @@ const {
   cameraDirection,
   volume,
   callEndTime,
+  callingState,
   joinCall,
   leaveCall,
   setupParticipantsSubscription,
@@ -51,6 +51,15 @@ const {
     selectedSpeakerId: props.settings.selectedSpeakerId,
   }
 )
+
+const callee = computed(() => {
+  if (!call.value) return null
+  const members = call.value.state.members
+  return members.find((m: any) => m.user_id !== props.streamUser.id)?.user
+})
+
+const calleeName = computed(() => callee.value?.name || callee.value?.id)
+const calleeImage = computed(() => callee.value?.image)
 
 // TODO: implement chat functionality
 // const {
@@ -127,7 +136,7 @@ onBeforeUnmount(() => {
   cleanupScreenShareNotifications()
 })
 
-function getErrorMessage(error) {
+function getErrorMessage(error: any) {
   if (!error) return 'An unknown error occurred.'
 
   const errorMessage = error.toString()
@@ -157,6 +166,15 @@ function getErrorMessage(error) {
       'video-chat': true,
     }"
   >
+    <!-- Outgoing Call View -->
+    <SharedOutgoingcall
+      v-if="callingState === CallingState.RINGING && call.isCreatedByMe"
+      :call="call"
+      :callee-name="calleeName"
+      :callee-image="calleeImage"
+      @ended="handleLeaveCall"
+    />
+
     <!-- Notifications -->
     <StreamCallNotification type="connection" :status="connectionStatus" />
     <StreamCallNotification

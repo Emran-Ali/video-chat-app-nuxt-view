@@ -57,55 +57,30 @@ export const useStreamStore = defineStore('streamStore', {
       })
     },
 
-    async initVideoClient() {
-      if (this.videoClient) return
-
-      const token = this.getStreamToken
-      const user = this.getStreamUser
+    initVideoClient() {
       const config = useRuntimeConfig()
       const apiKey = config.public.streamApiKey
+      const token = this.getStreamToken
+      const user = this.getStreamUser
 
-      if (!token || !user?.id || !apiKey) return
+      if (!apiKey || !token || !user.id || this.videoClient) return
 
       this.videoClient = new StreamVideoClient({
         apiKey,
-        user,
         token,
+        user: { id: user.id },
+        options: { logLevel: 'warn' },
       })
 
-      // Listen for incoming calls
-      this.videoClient.state.incomingCalls$.subscribe((calls) => {
-        if (calls.length > 0) {
-          this.incomingCall = calls[0]
-          // Proactively join the ring state
-          this.incomingCall.get()
-        } else {
-          this.incomingCall = null
-        }
-      })
+      console.log('Video client initialized')
     },
 
-    async handleAcceptCall() {
-      if (!this.incomingCall) return
-
-      const callId = this.incomingCall.id
-      const callType = this.incomingCall.type
-
-      this.incomingCall = null
-
-      navigateTo({
-        path: '/call',
-        query: {
-          callId,
-          callType,
-        },
-      })
-    },
-
-    async handleDeclineCall() {
-      if (!this.incomingCall) return
-      await this.incomingCall.reject()
-      this.incomingCall = null
+    async disconnect() {
+      if (this.videoClient) {
+        await this.videoClient.disconnectUser()
+        this.videoClient = null
+        console.log('Video client disconnected')
+      }
     },
   },
 })

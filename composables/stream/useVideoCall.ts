@@ -69,15 +69,18 @@ export function useVideoCall(
     }
   }
 
+  const callingState = ref<CallingState>(CallingState.IDLE)
+
   // Set up connection state subscription
   const setupConnectionStateSubscription = () => {
     // Use Stream's built-in reconnection feature - 0 means try reconnecting indefinitely (default)
     call.setDisconnectionTimeout(0)
 
-    call.state.callingState$.subscribe((callingState) => {
-      console.log('Calling state changed:', callingState)
+    call.state.callingState$.subscribe((state) => {
+      console.log('Calling state changed:', state)
+      callingState.value = state
 
-      switch (callingState) {
+      switch (state) {
         case CallingState.JOINED:
           connectionStatus.value = 'connected'
           break
@@ -248,6 +251,7 @@ export function useVideoCall(
     cameraDirection,
     volume,
     callEndTime,
+    callingState,
     joinCall,
     leaveCall,
     setupParticipantsSubscription,

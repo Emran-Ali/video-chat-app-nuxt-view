@@ -58,7 +58,7 @@ export default defineNuxtConfig({
   },
 
   imports: {
-    dirs: ['pinia/**'],
+    dirs: ['pinia/**', 'composables/**'],
   },
 
   nitro: {

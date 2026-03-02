@@ -1,30 +1,36 @@
 <script setup lang="ts">
-const streamStore = useStreamStore()
-const incomingCall = computed(() => streamStore.incomingCall)
+import { Call } from '@stream-io/video-client'
 
+const props = defineProps({
+  incomingCall: {
+    type: Call,
+    required: true,
+  },
+})
+const emit = defineEmits(['acceptCall', 'declineCall'])
 const callerName = computed(() => {
-  if (!incomingCall.value) return 'Unknown'
+  if (!props.incomingCall) return 'Unknown'
   return (
-    incomingCall.value.state.createdBy?.name ||
-    incomingCall.value.state.createdBy?.id ||
+    props.incomingCall.state.createdBy?.name ||
+    props.incomingCall.state.createdBy?.id ||
     'Someone'
   )
 })
 
 const callerImage = computed(() => {
-  return incomingCall.value?.state.createdBy?.image
+  return props.incomingCall.state.createdBy?.image
 })
 
 const isVideo = computed(() => {
-  return incomingCall.value?.type === 'default'
+  return props.incomingCall.type === 'default'
 })
 
 const acceptCall = () => {
-  streamStore.handleAcceptCall()
+  emit('acceptCall')
 }
 
 const declineCall = () => {
-  streamStore.handleDeclineCall()
+  emit('declineCall')
 }
 </script>
 
@@ -37,23 +43,29 @@ const declineCall = () => {
         <div class="flex items-center gap-4 mb-4">
           <div class="relative">
             <div
-              class="w-12 h-12 rounded-full overflow-hidden bg-teal-500/20 flex items-center justify-center"
+              class="w-16 h-16 rounded-full overflow-hidden bg-teal-500/20 flex items-center justify-center border-2 border-teal-500/30"
             >
               <img
                 v-if="callerImage"
                 :src="callerImage"
                 class="w-full h-full object-cover"
               />
-              <span v-else class="text-xl font-bold text-teal-400">{{
-                callerName.charAt(0)
-              }}</span>
+              <span
+                v-else
+                class="text-2xl font-bold text-teal-400 capitalize"
+                >{{ callerName.charAt(0) }}</span
+              >
             </div>
+            <!-- Ring effects -->
             <div
-              class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center animate-pulse"
+              class="absolute inset-0 w-16 h-16 rounded-full border border-teal-400/40 animate-ping opacity-25"
+            ></div>
+            <div
+              class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-teal-500 border-2 border-[#1a2c3d] flex items-center justify-center shadow-lg"
             >
               <i
                 :class="isVideo ? 'pi pi-video' : 'pi pi-phone'"
-                class="text-[10px] text-white"
+                class="text-[12px] text-white"
               ></i>
             </div>
           </div>

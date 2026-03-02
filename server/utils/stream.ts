@@ -170,6 +170,8 @@ export const StreamCallService = {
       const call = client.video.call('default', callId)
 
       await call.getOrCreate({
+        ring: true,
+        video: true,
         data: {
           starts_at: new Date(),
           settings_override: {
@@ -219,6 +221,8 @@ export const StreamCallService = {
       const call = client.video.call('audio_room', callId)
 
       await call.getOrCreate({
+        ring: true,
+        video: false,
         data: {
           created_by_id: userId,
           members: [
