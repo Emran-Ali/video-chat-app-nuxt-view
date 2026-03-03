@@ -130,7 +130,7 @@ const handleGoogleLogin = () => {
             <Field v-slot="{ field, errorMessage, meta }" name="password">
               <Password
                 id="password"
-                placeholder="**********"
+                placeholder="Enter your password"
                 :input-props="{ maxlength: 32 }"
                 toggle-mask
                 fluid
