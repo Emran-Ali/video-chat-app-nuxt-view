@@ -36,7 +36,7 @@ const declineCall = () => {
 
 <template>
   <Transition name="slide-up">
-    <div v-if="incomingCall" class="fixed bottom-6 right-6 z-[999] w-80">
+    <div v-if="incomingCall" class="fixed bottom-50 right-50 z-[999] w-80">
       <div
         class="bg-[#1a2c3d] border border-teal-500/30 rounded-2xl shadow-2xl p-4 backdrop-blur-xl"
       >
@@ -80,15 +80,15 @@ const declineCall = () => {
         <div class="flex gap-2">
           <button
             @click="declineCall"
-            class="flex-1 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 text-sm font-semibold flex items-center justify-center gap-2"
+            class="flex-1 py-2 h-10 w-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-300 text-sm font-semibold flex items-center justify-center gap-2"
           >
-            <i class="pi pi-times"></i> Decline
+            <i class="pi pi-times"></i>
           </button>
           <button
             @click="acceptCall"
-            class="flex-1 py-2 rounded-xl bg-teal-500 text-white hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/20 text-sm font-semibold flex items-center justify-center gap-2"
+            class="flex-1 py-2 h-10 w-10 rounded-full bg-teal-500 text-white hover:bg-teal-600 transition-all duration-300 shadow-lg shadow-teal-500/20 text-sm font-semibold flex items-center justify-center gap-2"
           >
-            <i class="pi pi-check"></i> Answer
+            <i :class="isVideo ? 'pi pi-video' : 'pi pi-phone'"></i>
           </button>
         </div>
       </div>

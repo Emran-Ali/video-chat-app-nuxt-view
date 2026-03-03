@@ -284,11 +284,11 @@ const extendByMinutes = async (minutes: number) => {
     :class="recordingNotificationType"
   >
     <i
-      class="fas"
+      class="pi"
       :class="{
-        'fa-record-vinyl': recordingNotificationType === 'start',
-        'fa-stop-circle': recordingNotificationType === 'stop',
-        'fa-exclamation-circle': recordingNotificationType === 'error',
+        'pi-circle-fill': recordingNotificationType === 'start',
+        'pi-stop-circle': recordingNotificationType === 'stop',
+        'pi-exclamation-circle': recordingNotificationType === 'error',
       }"
     />
     {{ recordingNotification }}
@@ -330,10 +330,10 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleMic"
         >
           <span v-if="props.micStatus === 'enabled'" class="btn-icon">
-            <i class="fas fa-microphone" />
+            <i class="pi pi-microphone" />
           </span>
           <span v-else class="btn-icon">
-            <i class="fas fa-microphone-slash" />
+            <i class="pi pi-microphone-slash" />
           </span>
         </button>
 
@@ -346,10 +346,10 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleCamera"
         >
           <span v-if="props.cameraStatus === 'enabled'" class="btn-icon">
-            <i class="fas fa-video" />
+            <i class="pi pi-video" />
           </span>
           <span v-else class="btn-icon">
-            <i class="fas fa-video-slash" />
+            <i class="pi pi-video-slash" />
           </span>
         </button>
 
@@ -375,7 +375,7 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleNoiseCancellation"
         >
           <span class="btn-icon ml-[-2px]">
-            <i class="fas fa-music" />
+            <i class="pi pi-headphones" />
           </span>
         </button>
 
@@ -401,7 +401,7 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleScreenShare"
         >
           <span class="btn-icon">
-            <i class="fas fa-desktop" />
+            <i class="pi pi-desktop" />
           </span>
         </button>
 
@@ -414,8 +414,8 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleRecording"
         >
           <i
-            class="fas"
-            :class="isRecording ? 'fa-stop-circle' : 'fa-record-vinyl'"
+            class="pi"
+            :class="isRecording ? 'pi-stop-circle' : 'pi-circle-fill'"
           />
           <span v-if="isRecordingLoading" class="loading-indicator" />
         </button>
@@ -430,7 +430,7 @@ const extendByMinutes = async (minutes: number) => {
             @click="showSettings = !showSettings"
           >
             <span class="btn-icon">
-              <i class="fas fa-cog" />
+              <i class="pi pi-cog" />
             </span>
           </button>
 
@@ -547,7 +547,7 @@ const extendByMinutes = async (minutes: number) => {
           @click="toggleChat"
         >
           <span class="btn-icon">
-            <i class="fas fa-comment" />
+            <i class="pi pi-comments" />
           </span>
           <!-- Unread message indicator -->
           <span
@@ -572,7 +572,7 @@ const extendByMinutes = async (minutes: number) => {
           @click="flipCamera"
         >
           <span class="btn-icon">
-            <i class="fas fa-sync" />
+            <i class="pi pi-refresh" />
           </span>
         </button>
 
@@ -584,7 +584,7 @@ const extendByMinutes = async (minutes: number) => {
           @click="leaveCall"
         >
           <span class="btn-icon">
-            <i class="fas fa-phone" />
+            <i class="pi pi-phone" />
           </span>
         </button>
       </div>
@@ -629,7 +629,7 @@ const extendByMinutes = async (minutes: number) => {
       <!-- call countdown timer -->
 
       <div>
-        <i class="fas fa-clock pill-icon" />
+        <i class="pi pi-clock pill-icon" />
         TODO: need to implement call duration timer
       </div>
     </div>

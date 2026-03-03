@@ -25,23 +25,20 @@ const emit = defineEmits<{
       title="Toggle participant sidebar"
     >
       <span v-if="showSidebar">
-        <i class="fas fa-chevron-right"></i>
+        <i class="pi pi-caret-right"></i>
       </span>
       <span v-else>
-        <i class="fas fa-chevron-left"></i>
+        <i class="pi pi-caret-left"></i>
       </span>
     </button>
 
     <button
       @click="emit('toggleFullScreen')"
       class="fullscreen-btn"
-      title="Toggle fullscreen"
+      :title="isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'"
     >
-      <span v-if="isFullScreen">
-        <i class="fas fa-compress"></i>
-      </span>
-      <span v-else>
-        <i class="fas fa-expand"></i>
+      <span>
+        <i class="pi pi-expand"></i>
       </span>
     </button>
   </div>

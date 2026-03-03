@@ -167,6 +167,7 @@ function getErrorMessage(error: any) {
     }"
   >
     <!-- Outgoing Call View -->
+    {{ callingState }}
     <SharedOutgoingcall
       v-if="callingState === CallingState.RINGING && call.isCreatedByMe"
       :call="call"
