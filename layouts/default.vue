@@ -3,6 +3,10 @@ import Toast from 'primevue/toast'
 
 import { useIncomingCall } from '~/composables/stream/useIncomingCall'
 
+useHead({
+  title: 'Nuxt Video Chat',
+})
+
 const streamStore = useStreamStore()
 const authStore = useAuthStore()
 const config = useRuntimeConfig()

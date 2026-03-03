@@ -43,6 +43,20 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      link: [
+        // 1. Legacy fallback (fixes Chrome double-download bug)
+        {
+          rel: 'icon',
+          href: '/favicon.ico',
+          sizes: '32x32',
+        },
+        // 2. Modern SVG (Chrome, Firefox, Edge, Safari 26+, etc.)
+        {
+          rel: 'icon',
+          type: 'image/svg+xml',
+          href: '/favicon.svg',
+        },
+      ],
       htmlAttrs: {
         lang: 'en',
       },

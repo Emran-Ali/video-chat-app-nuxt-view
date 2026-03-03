@@ -18,8 +18,8 @@ export default defineEventHandler(async (event) => {
 
     if (!user) {
       throw createError({
-        statusCode: 404,
-        statusMessage: 'User not found',
+        statusCode: 401,
+        statusMessage: 'Invalid credentials',
       })
     }
 
