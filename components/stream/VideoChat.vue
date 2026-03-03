@@ -61,29 +61,12 @@ const callee = computed(() => {
 const calleeName = computed(() => callee.value?.name || callee.value?.id)
 const calleeImage = computed(() => callee.value?.image)
 
-// TODO: implement chat functionality
-// const {
-//   chatClient,
-//   chatChannel,
-//   chatReceiverParticipant,
-//   unreadMessageCount,
-//   isChatConnecting,
-//   chatError,
-//   isChatOpen,
-//   toggleChat,
-// } = useChatClient(apiKey, token.value, participants, props.streamUser.id, call)
-
 // Initialize layout management
 const {
-  layoutMode,
-  showSidebar,
   isFullScreen,
   screenSharingParticipant,
-  effectiveLayoutMode,
-  activeParticipant,
-  sidebarParticipants,
-  toggleLayout,
-  toggleSidebar,
+  fullScreenParticipant,
+  floatingParticipants,
   toggleFullScreen,
   setupFullscreenListener,
   cleanupFullscreenListener,
@@ -191,25 +174,20 @@ function getErrorMessage(error: any) {
     </div>
     <StreamCallContainer
       ref="callContainerRef"
-      :effective-layout-mode="effectiveLayoutMode"
-      :show-sidebar="showSidebar"
-      :active-participant="activeParticipant"
-      :screen-sharing-participant="screenSharingParticipant"
-      :sidebar-participants="sidebarParticipants"
-      :participants="participants"
+      :full-screen-participant="fullScreenParticipant"
+      :floating-participants="floatingParticipants"
       :call="call"
     />
 
-    <StreamLayoutControls
-      :layout-mode="layoutMode"
-      :effective-layout-mode="effectiveLayoutMode"
-      :show-sidebar="showSidebar"
-      :is-full-screen="isFullScreen"
-      :screen-sharing-participant="screenSharingParticipant"
-      @toggle-layout="toggleLayout"
-      @toggle-sidebar="toggleSidebar"
-      @toggle-full-screen="toggleFullScreen"
-    />
+    <div class="fixed top-6 right-6 z-30">
+      <button
+        @click="toggleFullScreen"
+        class="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-center hover:bg-black/80 transition-all"
+        :title="isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'"
+      >
+        <i :class="isFullScreen ? 'pi pi-window-minimize' : 'pi pi-expand'" />
+      </button>
+    </div>
 
     <div
       v-if="connectionStatus === 'disconnected'"

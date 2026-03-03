@@ -146,15 +146,12 @@ onUnmounted(() => {
     <!-- Three-dot menu -->
     <div v-if="!isLocal && !isMuted" class="menu-container">
       <button class="menu-button" @click.stop="toggleMenu" title="Options">
-        <i class="fas fa-ellipsis-v"></i>
+        <i class="pi pi-ellipsis-v"></i>
       </button>
       <div v-if="menuOpen" class="menu-dropdown">
         <button v-if="!isMuted" class="menu-item" @click="muteParticipant">
-          <i class="fas fa-microphone-slash"></i> Mute Participant
+          <i class="pi pi-microphone-slash"></i> Mute Participant
         </button>
-        <!-- <button class="menu-item" @click="removeParticipant">
-          <i class="fas fa-ban"></i> Block User
-        </button> -->
       </div>
     </div>
 
@@ -169,7 +166,7 @@ onUnmounted(() => {
       :data-session-id="participant.sessionId"
       :class="{
         'video-hidden': !videoEnabled,
-        'absolute !object-contain': true,
+        'absolute inset-0 w-full h-full object-cover': true,
         '-scale-x-100': isLocal,
       }"
     ></video>
@@ -188,7 +185,7 @@ onUnmounted(() => {
 
       <div class="participant-status">
         <span v-if="isMuted" class="muted-icon" title="Microphone is muted">
-          <i class="fas fa-microphone-slash"></i>
+          <i class="pi pi-microphone-slash"></i>
         </span>
       </div>
     </div>
@@ -200,17 +197,13 @@ onUnmounted(() => {
   position: relative;
   border-radius: 16px;
   overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .video-participant.spotlight {
-  width: 1440px;
+  width: 100%;
   height: 100%;
-  position: relative;
-  /* padding-bottom: 82.5vh; */
-}
-
-.video-participant.spotlight:hover {
-  transform: none;
 }
 
 /* Speaking indicator with modern design */
@@ -228,10 +221,10 @@ onUnmounted(() => {
 /* Participant info overlay with better design */
 .participant-info {
   position: absolute;
-  bottom: clamp(20px, 1.5%, 24px);
+  bottom: 12px;
   left: 0;
   right: 0;
-  padding: 12px 12px;
+  padding: 0 12px;
 
   display: flex;
   justify-content: space-between;
@@ -420,19 +413,7 @@ video {
 /* Responsive design improvements */
 
 /* when width is less than 1440px */
-@media (max-width: 1600px) {
-  .video-participant.spotlight {
-    padding-bottom: 82.5vh;
-    width: 1280px;
-  }
-}
-
-/* when width is less than 1440px */
 @media (max-width: 1440px) {
-  .video-participant.spotlight {
-    width: 1024px;
-  }
-
   .avatar {
     width: 70px;
     height: 70px;
@@ -447,19 +428,6 @@ video {
 
   .participant-name {
     font-size: 13px;
-  }
-}
-
-@media (max-width: 1280px) {
-  .video-participant.spotlight {
-    width: 960px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .video-participant.spotlight {
-    padding-bottom: 80vh;
-    width: 832px;
   }
 }
 

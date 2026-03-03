@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { type StreamVideoParticipant } from '@stream-io/video-client'
+import {
+  hasScreenShare,
+  type StreamVideoParticipant,
+} from '@stream-io/video-client'
 
-defineProps<{
-  effectiveLayoutMode: 'grid' | 'spotlight'
-  showSidebar: boolean
-  activeParticipant?: StreamVideoParticipant
-  screenSharingParticipant?: StreamVideoParticipant
-  sidebarParticipants: StreamVideoParticipant[]
-  participants: StreamVideoParticipant[]
+const props = defineProps<{
+  fullScreenParticipant?: StreamVideoParticipant
+  floatingParticipants: StreamVideoParticipant[]
   call: any
 }>()
 
@@ -16,461 +15,162 @@ const participantsRef = ref<HTMLElement | null>(null)
 defineExpose({
   participantsRef,
 })
+
+// Movable popup logic
+const popupPos = ref({ x: 20, y: 20 })
+const isDragging = ref(false)
+const dragOffset = ref({ x: 0, y: 0 })
+
+const startDrag = (event: MouseEvent | TouchEvent) => {
+  isDragging.value = true
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY
+
+  dragOffset.value = {
+    x: clientX - popupPos.value.x,
+    y: clientY - popupPos.value.y,
+  }
+
+  document.addEventListener('mousemove', onDrag)
+  document.addEventListener('mouseup', stopDrag)
+  document.addEventListener('touchmove', onDrag)
+  document.addEventListener('touchend', stopDrag)
+}
+
+const popupWidth = 160
+const popupHeight = 240
+
+const onDrag = (event: MouseEvent | TouchEvent) => {
+  if (!isDragging.value) return
+  const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX
+  const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY
+
+  const container = participantsRef.value
+  if (!container) return
+
+  const rect = container.getBoundingClientRect()
+
+  // Calculate new position
+  let newX = clientX - dragOffset.value.x
+  let newY = clientY - dragOffset.value.y
+
+  // Constrain to container boundaries
+  newX = Math.max(10, Math.min(newX, rect.width - popupWidth - 10))
+  newY = Math.max(10, Math.min(newY, rect.height - popupHeight - 10))
+
+  popupPos.value = { x: newX, y: newY }
+}
+
+const stopDrag = () => {
+  isDragging.value = false
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDrag)
+  document.removeEventListener('touchend', stopDrag)
+}
 </script>
 
 <template>
-  <div class="call-container" :class="effectiveLayoutMode">
-    <!-- Spotlight view for screen sharing or active speaker -->
-    <div v-if="effectiveLayoutMode === 'spotlight'" class="spotlight-container">
-      <!-- Screen share display -->
-      <div v-if="screenSharingParticipant" class="screen-share-wrapper">
+  <div class="call-container" ref="participantsRef">
+    <!-- Full Screen Layer (Background) -->
+    <div class="full-screen-layer">
+      <template v-if="fullScreenParticipant">
         <StreamScreenShareDisplay
-          :key="screenSharingParticipant.sessionId"
-          :participant="screenSharingParticipant"
+          v-if="hasScreenShare(fullScreenParticipant)"
+          :participant="fullScreenParticipant"
           :call="call"
         />
-      </div>
-      <!-- Active participant (if not screen sharing) -->
-      <div v-else-if="activeParticipant" class="active-participant-wrapper">
         <StreamVideoParticipant
-          :key="activeParticipant.sessionId"
-          :participant="activeParticipant"
+          v-else
+          :participant="fullScreenParticipant"
           :call="call"
           :is-spotlight="true"
         />
+      </template>
+      <div v-else class="waiting-state">
+        <i class="pi pi-spin pi-spinner text-4xl mb-4" />
+        <p>Connecting to call...</p>
       </div>
     </div>
 
-    <!-- Participants grid or sidebar -->
+    <!-- Floating Popups Layer -->
     <div
-      ref="participantsRef"
-      class="participants-container"
-      :class="{
-        sidebar: effectiveLayoutMode === 'spotlight' && showSidebar,
-        hidden: effectiveLayoutMode === 'spotlight' && !showSidebar,
-      }"
-      :data-participant-count="
-        effectiveLayoutMode === 'spotlight'
-          ? sidebarParticipants.length
-          : participants.length
-      "
+      class="floating-popups"
+      :style="{ left: popupPos.x + 'px', top: popupPos.y + 'px' }"
+      @mousedown="startDrag"
+      @touchstart="startDrag"
     >
-      <StreamVideoParticipant
-        v-for="participant in effectiveLayoutMode === 'spotlight'
-          ? sidebarParticipants
-          : participants"
+      <div
+        v-for="participant in floatingParticipants"
         :key="participant.sessionId"
-        :participant="participant"
-        :call="call"
-        :is-spotlight="false"
-      />
+        class="floating-video-box"
+      >
+        <StreamVideoParticipant
+          :participant="participant"
+          :call="call"
+          :is-spotlight="false"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Main call container with modern design */
 .call-container {
-  flex: 1;
-  display: flex;
+  width: 100%;
+  height: 100%;
   position: relative;
   overflow: hidden;
-  background: transparent;
-  border-radius: 0;
+  background-color: #101010;
 }
 
-/* Layout modes */
-.call-container.grid {
-  flex-direction: column;
-  padding: 0.75rem;
-}
-
-.call-container.spotlight {
-  flex-direction: row;
-}
-
-/* Smart responsive grid layout - Google Meet style */
-.participants-container {
-  display: grid;
-  gap: 0.75rem;
-  height: 100%;
+.full-screen-layer {
   width: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  /* Dynamic grid based on participant count */
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  grid-auto-rows: minmax(210px, 1fr);
-
-  /* Custom scrollbar */
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  height: 100%;
+  z-index: 1;
 }
 
-.participants-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.participants-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.participants-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.participants-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Sidebar layout for spotlight mode - Google Meet style */
-.participants-container.sidebar {
-  width: 25%;
-  min-width: 240px;
-  max-width: 320px;
-  flex-shrink: 0;
+.waiting-state {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background-color: #181818;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  gap: 0.5rem;
-  padding: 0.75rem;
-  margin-left: 0.75rem;
-}
-
-.participants-container.sidebar > * {
-  height: 180px;
-  min-height: 140px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.participants-container.hidden {
-  width: 0;
-  min-width: 0;
-  max-width: 0;
-  padding: 0;
-  overflow: hidden;
-  border: none;
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Spotlight container for main display */
-.spotlight-container {
-  flex: 1;
-  display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.floating-popups {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: move;
+  pointer-events: auto;
+  transition: transform 0.1s ease-out;
+}
+
+.floating-video-box {
+  width: 160px;
+  height: 240px;
   border-radius: 16px;
-  background-color: #181818;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: #1a1a1a;
+  flex-shrink: 0;
 }
 
-.screen-share-wrapper,
-.active-participant-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.floating-video-box :deep(.video-participant) {
   width: 100%;
   height: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* Dynamic grid adjustments based on participant count */
-.participants-container[data-participant-count='1'] {
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-}
-
-.participants-container[data-participant-count='2'] {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
-}
-
-.participants-container[data-participant-count='3'],
-.participants-container[data-participant-count='4'] {
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.participants-container[data-participant-count='5'],
-.participants-container[data-participant-count='6'] {
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-}
-
-/* Large desktop optimizations */
-@media (min-width: 1440px) {
-  .call-container.grid {
-    padding: 1rem;
-  }
-
-  .participants-container {
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-    grid-auto-rows: minmax(400px, 1fr);
-  }
-
-  .participants-container.sidebar {
-    width: 22%;
-    min-width: 280px;
-    max-width: 360px;
-  }
-
-  .participants-container.sidebar > * {
-    height: 180px;
-    min-height: 180px;
-  }
-}
-
-/* Desktop responsive adjustments */
-@media (max-width: 1200px) {
-  .participants-container {
-    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-    grid-auto-rows: minmax(290px, 1fr);
-  }
-
-  .participants-container.sidebar {
-    width: 28%;
-    min-width: 220px;
-  }
-}
-
-/* Tablet landscape */
-@media (max-width: 1024px) {
-  .call-container.grid {
-    padding: 0.5rem;
-  }
-
-  .participants-container {
-    gap: 0.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    grid-auto-rows: minmax(210px, 1fr);
-  }
-
-  .participants-container.sidebar {
-    width: 30%;
-    min-width: 200px;
-    padding: 0.5rem;
-  }
-
-  .participants-container.sidebar > * {
-    height: 180px;
-    min-height: 180px;
-  }
-
-  .spotlight-container {
-    padding: 0.75rem;
-    border-radius: 12px;
-  }
-}
-
-/* Tablet portrait and mobile landscape */
 @media (max-width: 768px) {
-  .call-container.grid {
-    padding: 0.25rem;
-  }
-
-  .call-container.spotlight {
-    flex-direction: column;
-    padding: 0.25rem;
-  }
-
-  .participants-container {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    grid-auto-rows: minmax(180px, 1fr);
-    gap: 0.375rem;
-  }
-
-  /* Mobile sidebar becomes bottom strip */
-  .participants-container.sidebar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 25%;
-    min-height: 120px;
-    max-width: none;
-    z-index: 10;
-    display: flex;
-    flex-direction: row;
-    gap: 0.375rem;
-    padding: 0.5rem;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(20px);
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px 12px 0 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .participants-container.sidebar > * {
-    height: 100%;
-    min-height: auto;
-    width: 200px;
-    min-width: 200px;
-    flex-shrink: 0;
-    border-radius: 8px;
-  }
-
-  .spotlight-container {
-    padding: 0.5rem;
-    border-radius: 8px;
-  }
-
-  /* Optimize grid for mobile */
-  .participants-container[data-participant-count='1'] {
-    grid-template-columns: 1fr;
-  }
-
-  .participants-container[data-participant-count='2'] {
-    grid-template-columns: 1fr;
-  }
-
-  .participants-container[data-participant-count='3'],
-  .participants-container[data-participant-count='4'] {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  /* Mobile-specific hidden state for sidebar */
-  .participants-container.hidden {
-    /* On mobile, hide the bottom sidebar by moving it off-screen */
-    bottom: -100%;
-    opacity: 0;
-    height: 0;
-    min-height: 0;
-    transform: translateY(100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
-
-/* Mobile portrait */
-@media (max-width: 480px) {
-  .call-container.grid {
-    padding: 0.125rem;
-  }
-
-  .participants-container {
-    grid-template-columns: 1fr;
-    grid-auto-rows: minmax(250px, 1fr);
-    gap: 0.25rem;
-  }
-
-  .participants-container[data-participant-count='2'] {
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
-  }
-
-  .participants-container[data-participant-count='3'],
-  .participants-container[data-participant-count='4'] {
-    grid-template-columns: 1fr;
-    grid-auto-rows: minmax(160px, 1fr);
-  }
-
-  .participants-container.sidebar {
-    height: 22%;
-    min-height: 100px;
-    padding: 0.375rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .participants-container.sidebar > * {
-    width: 200px;
-    min-width: 200px;
-    border-radius: 6px;
-  }
-
-  .spotlight-container {
-    padding: 0.375rem;
-    border-radius: 6px;
-  }
-
-  /* Mobile portrait hidden state for sidebar */
-  .participants-container.hidden {
-    /* On mobile portrait, hide the bottom sidebar by moving it off-screen */
-    bottom: -100%;
-    opacity: 0;
-    height: 0;
-    min-height: 0;
-    transform: translateY(100%);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
-
-/* Ultra-wide screens */
-@media (min-width: 1920px) {
-  .participants-container {
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    grid-auto-rows: minmax(300px, 1fr);
-    gap: 1.25rem;
-  }
-
-  .participants-container.sidebar {
-    width: 20%;
-    min-width: 320px;
-    max-width: 400px;
-  }
-
-  .participants-container.sidebar > * {
-    height: 180px;
-    min-height: 180px;
-  }
-}
-
-/* Smooth transitions for layout changes */
-.participants-container,
-.participants-container.sidebar,
-.spotlight-container {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Loading and empty states */
-.participants-container:empty {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 1.125rem;
-  font-weight: 500;
-}
-
-.participants-container:empty::after {
-  content: 'Waiting for participants...';
-}
-
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-  .participants-container,
-  .participants-container.sidebar,
-  .spotlight-container {
-    transition: none;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .participants-container.sidebar {
-    border-left: 2px solid rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 0.3);
-  }
-
-  .spotlight-container {
-    background: rgba(0, 0, 0, 0.1);
+  .floating-video-box {
+    width: 110px;
+    height: 165px;
   }
 }
 </style>
